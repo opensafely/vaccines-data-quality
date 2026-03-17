@@ -1,8 +1,21 @@
 version: '4.0'
 
 actions:
-  generate_dataset:
-    run: ehrql:v1 generate-dataset analysis/dataset_definition.py --output output/dataset.csv.gz
+#########################
+#  Flu vax data quality #
+#########################
+
+  extract_flu:
+    run: ehrql:v1 generate-dataset analysis/flu_dataset_definition.py
+      --output outputs_flu/extract_flu:arrow
+      #--dummy-data-file analysis/1-extract/dummy-data/dummy_varying.arrow
     outputs:
       highly_sensitive:
-        dataset: output/dataset.csv.gz
+        cohort: outputs_flu/extract_flu/*.arrow
+
+  vax_flu_data_quality:
+    run: r:v2 analysis/flu_data_quality.R
+    needs: [extract_flu]
+    outputs:
+      moderately_sensitive:
+        csv: outputs_flu/flu_data_quality/*.csv
