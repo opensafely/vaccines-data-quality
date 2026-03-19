@@ -19,3 +19,23 @@ Read more at [OpenSAFELY.org](https://opensafely.org).
 
 # Licences
 As standard, research projects have a MIT license. 
+
+## Instructions for adding new vaccines
+
+Please use the following pattern to add a new vaccine or set of variables:
+1. Choose a meaningful identifying `{NAME}` for your vaccine, and use this name consistently.
+2. Create a new working branch from `main`.
+3. Create a dataset definition `./analysis/{NAME}/{NAME}_dataset_definition.py` in the [`./analysis/`](./analysis/) directory. This dataset definition will contain the new vaccine. You may wish to add further scripts to the `./analysis/{NAME}/` directory that define additional functions or other code snippets.
+4. Any new codelists will need to be added directly to the [`./codelists/codelist.txt`](./codelists/codelist.txt) - specifying codelists in the variable-specific directories does not work neatly with the `opensafely codelists update` operation. You can also add the codelists to [`./analysis/codelists.py`](./analysis/codelists.py). Use a large separator, as below, to clearly distinguish the groups of codelists that belong to each vaccine.
+     ````
+     #######################################################
+     # {NAME}
+     #######################################################
+     ````
+5. Add the new actions to [`./project.yaml`](./project.yaml) file, using names such as `extract_{NAME}`, for the dataset definition and any additional reporting actions (e.g.`report_data_quality_{NAME}`). Use a clear, large separator like the one below to visually distinguish the groups of actions for each vaccine.
+     ````
+     #######################################################
+     # {NAME}
+     #######################################################
+     ````
+7. Check everything works as intended, then submit a PR for review.
