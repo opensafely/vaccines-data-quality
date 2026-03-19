@@ -3,7 +3,7 @@
 # define useful functions used in the codebase
 # define key design features for the study
 # define some look up tables to use in the codebase
-# this script should be sourced (using `source(here("analysis", "design.R"))`) at the start of each R script
+# this script should be sourced (using `source(here("analysis", "flu_vax", "0_flu_design.R"))`) at the start of each R script
 # _________________________________________________
 
 library("tidyverse")
@@ -37,7 +37,11 @@ round_any <- function(x, to = 1) {
 # - start_date is when we start the observational period proper, at the start of the mass vax programme
 # - end_date is when we stop the observation period. This may be extended as the study progresses
 
-study_dates <-
+# statistical disclosure control rounding precision
+sdc_threshold <- 10
+
+# create flu study dates json
+study_dates_flu <-
   list(
     firstpossiblevax_date = "2009-10-01",
     start_date = "2020-10-01",
@@ -49,8 +53,6 @@ study_dates <-
 # so we don't have to use `study_dates$start_date` or `start_date <- study_dates$start_date` in each script
 # list2env(study_dates, globalenv())
 
-# statistical disclosure control rounding precision
-sdc_threshold <- 10
 
 # Flu vaccine campaign dates -------------
 
@@ -93,20 +95,20 @@ campaign_info_flu <-
 
 localrun <- Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")
 
-output_dir <- here("outputs_flu")
+output_dir <- here("output/outputs_flu")
 fs::dir_create(output_dir)
 
 if (localrun) {
 
   jsonlite::write_json(
-    study_dates,
-    path = here::here("outputs_flu", "study_dates.json"),
+    study_dates_flu,
+    path = here::here("output","outputs_flu", "study_dates_flu.json"),
     pretty = TRUE, auto_unbox = TRUE
   )
 
   jsonlite::write_json(
     split(campaign_info_flu, f = campaign_info_flu$campaign_start_date) |> lapply(as.list),
-    path = here::here("outputs_flu", "campaign_info_flu.json"),
+    path = here::here("output","outputs_flu", "campaign_info_flu.json"),
     pretty = TRUE, auto_unbox = TRUE,
   )
 }

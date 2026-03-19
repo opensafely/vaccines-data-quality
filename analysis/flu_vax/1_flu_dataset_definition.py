@@ -28,15 +28,15 @@ from ehrql.tables.tpp import (
 #   addresses,
 )
 # import codelists
-import codelists
+from analysis import codelists
 
-study_dates = loads(
-    Path("outputs_flu/study_dates.json").read_text(),
+study_dates_flu = loads(
+    Path("output/outputs_flu/study_dates_flu.json").read_text(),
 )
 
 # Change these in ./design.R if necessary
-start_date = study_dates["start_date"]
-end_date = study_dates["end_date"]
+start_date = study_dates_flu["start_date"]
+end_date = study_dates_flu["end_date"]
 
 # all covid-19 vaccination events
 

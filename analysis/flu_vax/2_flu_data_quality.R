@@ -25,10 +25,10 @@ library("glue")
 library("UpSetR")
 
 # Import custom functions
-source(here("analysis", "design.R"))
+source(here("analysis", "flu_vax", "0_flu_design.R"))
 
 # create output directory
-output_dir <- here("outputs_flu", "flu_data_quality")
+output_dir <- here("output","outputs_flu", "flu_data_quality")
 fs::dir_create(output_dir)
 
 # set output width for capture.output
@@ -37,9 +37,9 @@ options(width = 200)
 
 # Import event-level flu vaccination data ----
 
-data_flu_table_raw  <- read_feather(here("outputs_flu", "extract_flu", "flu_vaccinations_table.arrow"))
-data_flu_snomed_raw <- read_feather(here("outputs_flu", "extract_flu", "flu_vaccinations_SNOMED.arrow"))
-data_flu_drug_raw   <- read_feather(here("outputs_flu", "extract_flu", "flu_vaccinations_drug.arrow"))
+data_flu_table_raw  <- read_feather(here("output","outputs_flu", "extract_flu", "flu_vaccinations_table.arrow"))
+data_flu_snomed_raw <- read_feather(here("output","outputs_flu", "extract_flu", "flu_vaccinations_SNOMED.arrow"))
+data_flu_drug_raw   <- read_feather(here("output","outputs_flu", "extract_flu", "flu_vaccinations_drug.arrow"))
 
 # For each source:
 # - remove rows where vaccination date is missing
