@@ -31,7 +31,7 @@ from ehrql.tables.tpp import (
 from analysis import codelists
 
 study_dates_flu = loads(
-    Path("analysis/flux_vax/study_dates_flu.json").read_text(),
+    Path("analysis/flu_vax/study_dates_flu.json").read_text(),
 )
 
 # Change these in ./design.R if necessary
