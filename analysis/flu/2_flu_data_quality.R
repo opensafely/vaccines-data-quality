@@ -249,7 +249,7 @@ write_csv(
 # run locally # -----------------------------------------------------------
 ###############
 # upset_plot_data <- readr::read_csv(
-#   here("output", "2-prepare", "flu_data_quality", "upset_plot_data.csv")
+#   here("output", "outputs_flu", "flu_data_quality", "upset_plot_data.csv")
 # )
 #
 # # loop campaigns
