@@ -359,6 +359,10 @@ write_csv(
 )
 
 
+# Note: These tables provide tidy data only
+# Plots are not generated here and should be created separately in R.
+
+
 # ---- Table 4: Flag × Campaign distribution ----
 flag_campaign_plot <-
   flag_full |>
