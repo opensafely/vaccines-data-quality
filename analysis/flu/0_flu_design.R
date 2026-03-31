@@ -1,40 +1,27 @@
 # _________________________________________________
 # Purpose:
-# define useful functions used in the codebase
 # define key design features for the study
-# define some look up tables to use in the codebase
 # this script should be sourced (using `source(here("analysis", "flu", "0_flu_design.R"))`) at the start of each R script
 # _________________________________________________
 
+#Libraries
 library("tidyverse")
 library("lubridate")
 library("here")
+library("jsonlite")
+library("here")
+library("fs")
 
-# utility functions ----
-
-roundmid_any <- function(x, to = 1) {
-  # like ceiling_any, but centers on (integer) midpoint of the rounding points
-  if (to == 0) {
-    x
-  } else {
-    ceiling(x / to) * to - (floor(to / 2) * (x != 0))
-  }
-}
-
-round_any <- function(x, to = 1) {
-  if (to == 0) {
-    x
-  } else {
-    if_else(x != 5, plyr::round_any(x, accuracy = to), 0)
-  }
-}
+# create output directory
+output_dir <- here("output","outputs_flu", "design_elements")
+dir_create(output_dir)
 
 # Design elements ----
 
 # key study dates
 # The dates are saved in json format so they can be read in by R and python scripts
-# - firstpossiblevax_date is the date from which we want to identify covid vaccines. the mass vax programme was 8 Dec 2020 but other people were vaccinated earlier in trials, so want to pick these people up too (and possibly exclude them)
-# - start_date is when we start the observational period proper, at the start of the mass vax programme
+# - firstpossiblevax_date is the date from which we want to identify flu vaccines (2005 is the first year for which primary care data are available in OpenSAFELY).
+# - start_date is when we start the observational period proper
 # - end_date is when we stop the observation period. This may be extended as the study progresses
 
 # statistical disclosure control rounding precision
@@ -43,16 +30,18 @@ sdc_threshold <- 10
 # create flu study dates json
 study_dates_flu <-
   list(
-    firstpossiblevax_date = "2009-10-01",
+    firstpossiblevax_date = "2005-10-01",
     start_date = "2020-10-01",
     end_date = "2026-03-31"
   ) |>
   lapply(as.Date)
 
-# make these available in the global environment
-# so we don't have to use `study_dates$start_date` or `start_date <- study_dates$start_date` in each script
-# list2env(study_dates, globalenv())
-
+write_json(
+  study_dates_flu,
+  here(output_dir, "study_dates_flu.json"),
+  auto_unbox = TRUE,
+  pretty = TRUE
+)
 
 # Flu vaccine campaign dates -------------
 
@@ -89,26 +78,33 @@ campaign_info_flu <-
     primary_milestone_days = as.integer(primary_milestone_date - campaign_start_date) + 1L,
     final_milestone_days = as.integer(final_milestone_date - campaign_start_date) + 1L
   )
+write_json(
+  campaign_info_flu,
+  here(output_dir, "campaign_info_flu.json"),
+  auto_unbox = TRUE,
+  pretty = TRUE
+)
 
-  # Local run flag ----
-# is this script being run locally, and if so do we need to output objects to be picked up by ehrQL scripts
+#   # Local run flag ----
+# # is this script being run locally, and if so do we need to output objects to be picked up by ehrQL scripts
 
-localrun <- Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")
+# localrun <- Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")
 
-output_dir <- here("analysis/flu")
-fs::dir_create(output_dir)
+# output_dir <- here("analysis/flu")
+# fs::dir_create(output_dir)
 
-if (localrun) {
+# if (localrun) {
 
-  jsonlite::write_json(
-    study_dates_flu,
-    path = here::here("analysis", "flu", "study_dates_flu.json"),
-    pretty = TRUE, auto_unbox = TRUE
-  )
+#   jsonlite::write_json(
+#     study_dates_flu,
+#     path = here::here("analysis", "flu", "study_dates_flu.json"),
+#     pretty = TRUE, auto_unbox = TRUE
+#   )
 
-  jsonlite::write_json(
-    split(campaign_info_flu, f = campaign_info_flu$campaign_start_date) |> lapply(as.list),
-    path = here::here("analysis", "flu", "campaign_info_flu.json"),
-    pretty = TRUE, auto_unbox = TRUE,
-  )
-}
+#   jsonlite::write_json(
+#     split(campaign_info_flu, f = campaign_info_flu$campaign_start_date) |> lapply(as.list),
+#     path = here::here("analysis", "flu", "campaign_info_flu.json"),
+#     pretty = TRUE, auto_unbox = TRUE,
+#   )
+# }
+
