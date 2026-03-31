@@ -1,10 +1,16 @@
-version: '4.0'
+version: '5.0'
 
 actions:
 #########################
 #  Flu vax data quality #
 #########################
-
+  design_elements_flu:
+    run: r:v2 analysis/flu/0_flu_design.R
+    needs: []
+    outputs:
+      moderately_sensitive:
+        json: output/outputs_flu/design_elements/*.json
+  
   extract_flu:
     run: ehrql:v1 generate-dataset analysis/flu/1_flu_dataset_definition.py
       --output output/outputs_flu/extract_flu:arrow
