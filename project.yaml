@@ -26,3 +26,30 @@ actions:
     outputs:
       moderately_sensitive:
         csv: output/outputs_flu/flu_data_quality/*.csv
+
+
+
+###########################
+# Covid vax data quality #
+###########################
+
+  extract_covid:
+    run: ehrql:v1 generate-dataset analysis/covid/1_covid_dataset_definition.py
+      --output output/outputs_covid/extract_covid:arrow
+    outputs:
+      highly_sensitive:
+        cohort: output/outputs_covid/extract_covid/*.arrow
+
+  modify_dummy_extract_covid:
+    run: r:v2 analysis/covid/1_covid_modify_dummy_extract.R
+    needs: [extract_covid]
+    outputs:
+      highly_sensitive:
+        cohort: output/outputs_covid/modify_dummy_extract/*.arrow
+
+  report_data_quality_covid:
+    run: r:v2 analysis/covid/2_covid_data_quality.R
+    needs: [modify_dummy_extract_covid]
+    outputs:
+      moderately_sensitive:
+        csv: output/outputs_covid/covid_data_quality/*.csv
