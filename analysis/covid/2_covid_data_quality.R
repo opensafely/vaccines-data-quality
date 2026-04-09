@@ -69,13 +69,18 @@ data_vax_ELD <-
   ) |>
   lazy_dt()
 
-# report any unmapped product names
-# and stop if there are any
-unmapped_products <- data_vax_ELD |> filter(vax_product %in% "UNMAPPED") |> pull(vax_product_raw) |> unique()
-cat("Unmapped product names: \n")
-cat(paste0(unmapped_products, collapse = "\n"))
-stopifnot("There are unmapped product names" = length(unmapped_products) == 0)
 
+# report any unmapped product names
+unmapped_products <- data_vax_ELD |> filter(vax_product == "UNMAPPED") |> pull(vax_product_raw) |> unique()
+if (length(unmapped_products) > 0) {
+  message("Unmapped product names found:")
+  message(paste(unmapped_products, collapse = "\n"))
+  stop("There are unmapped product names — see log for details.")
+}
+
+# drop unused variable
+data_vax_ELD <- data_vax_ELD |>
+  select(-vax_product_raw)
 
 # 3. Construct data‑quality flags
 

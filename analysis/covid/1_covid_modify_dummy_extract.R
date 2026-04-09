@@ -19,21 +19,15 @@ make_vax_baseline_clean <- function(data, seed = 123) {
   start_date <- study_dates$start_date
   end_date   <- study_dates$end_date
 
-  short_names <- names(approval_lookup)
+  valid_products <- unname(vax_product_lookup[names(approval_lookup)])
   valid_dates <- seq(start_date, end_date, by = "day")
 
   data |>
     mutate(
-      vax_product_short = sample(short_names, n(), replace = TRUE),
-
-      vax_product = dplyr::recode(
-        vax_product_short,
-        !!!vax_product_lookup,
-        .default = NA_character_
-      ),
-
+      vax_product = sample(valid_products, n(), replace = TRUE),
       vax_date = sample(valid_dates, n(), replace = TRUE)
-    )
+    ) |>
+    recalculate_age_from_shift()
 }
 
 
@@ -81,29 +75,26 @@ inject_vax_errors <- function(data, seed = 123) {
 
   # 3A) Unapproved product：
   #     product exists in vax_product_lookup but not in approval_lookup
-  unapproved_products <- setdiff(names(vax_product_lookup), names(approval_lookup))
+  unapproved_products <- unname(vax_product_lookup[setdiff(names(vax_product_lookup), names(approval_lookup))])
   idx_unapproved <- sample(remaining, min(length(remaining), max(10, floor(0.02 * n_all))))
-  chosen_unapproved <- sample(unapproved_products, length(idx_unapproved), replace = TRUE)
-  
-  data$vax_product_short[idx_unapproved] <- chosen_unapproved
-  data$vax_product[idx_unapproved] <- dplyr::recode(
-    chosen_unapproved,
-    !!!vax_product_lookup)
+  data$vax_product[idx_unapproved] <- sample(unapproved_products, length(idx_unapproved), replace = TRUE)
 
   remaining <- setdiff(remaining, idx_unapproved)
 
 
   # 3B) Product before approval:
   #     keep current approved product, move date before approval
-  idx_pre_approval <- sample(
-    remaining,
-    min(length(remaining), max(10, floor(0.02 * n_all)))
-    )
+  reverse_lookup <- setNames(names(vax_product_lookup), unname(vax_product_lookup))
+  idx_pre_approval <- sample(remaining, min(length(remaining), max(10, floor(0.02 * n_all))))
     
-  approval_dates <- as.Date(unname(approval_lookup[data$vax_product_short[idx_pre_approval]]))
+  current_short_names <- unname(reverse_lookup[data$vax_product[idx_pre_approval]])
+  approval_dates <- as.Date(unname(approval_lookup[current_short_names])) 
+  valid_idx <- which(!is.na(approval_dates))
   
-  data$vax_date[idx_pre_approval] <- approval_dates -
-    sample(1:30, length(idx_pre_approval), replace = TRUE)
+  if (length(valid_idx) > 0) {
+    data$vax_date[idx_pre_approval[valid_idx]] <- approval_dates[valid_idx] -
+      sample(1:30, length(valid_idx), replace = TRUE)
+  }
 
   remaining <- setdiff(remaining, idx_pre_approval)
 
@@ -117,97 +108,118 @@ inject_vax_errors <- function(data, seed = 123) {
   remaining <- setdiff(remaining, idx_dup)
 
 
-  # 5) Same-day mixed product
-  idx_mixed <- sample(remaining, max(8, floor(0.015 * n_all)))
-
-  mixed_rows <- data[idx_mixed, ]
-
   # 5) Same-day mixed-product records
   #     duplicated row with same patient/date but different product
   # --------------------------------------------------
   idx_mixed <- sample(remaining, min(length(remaining), max(8, floor(0.015 * n_all))))
   mixed_rows <- data[idx_mixed, , drop = FALSE]
 
-  valid_products <- names(vax_product_lookup)
+  valid_products <- unname(vax_product_lookup)
 
-  mixed_rows$vax_product_short <- vapply(
-    mixed_rows$vax_product_short,
+  mixed_rows$vax_product <- vapply(
+    mixed_rows$vax_product,
     function(old_product) {
       sample(setdiff(valid_products, old_product), 1)
     },
     character(1)
   )
 
-  mixed_rows$vax_product <- dplyr::recode(
-    mixed_rows$vax_product_short,
-    !!!vax_product_lookup,
-  )
-
   data <- bind_rows(data, mixed_rows)
+  remaining <- setdiff(remaining, idx_mixed)
+
+  # 5B) More complex same-day mixed patterns
+
+  idx_complex <- sample(remaining, min(length(remaining), max(5, floor(0.01 * n_all))))
+  base_rows <- data[idx_complex, , drop = FALSE]
+
+  valid_products <- unname(vax_product_lookup)
 
 
-# 6) Inject interval patterns across interval bins
-#    Exclude same-day multiple-record combinations
+  n_repeat <- sample(2:3, length(idx_complex), replace = TRUE)
 
-data <- data |>
-  arrange(patient_id, vax_date) |>
-  group_by(patient_id, vax_date) |>
-  mutate(n_records_day = n()) |>
-  ungroup() |>
-  arrange(patient_id, vax_date) |>
-  group_by(patient_id) |>
-  mutate(
-    prev_date = lag(vax_date),
-    prev_n_records_day = lag(n_records_day)
-  ) |>
-  ungroup()
+  dup_rows <- base_rows[rep(seq_len(nrow(base_rows)), n_repeat), ]
 
-# eligible for interval manipulation:
-# 1) must have a previous vaccination date
-# 2) current day is not same-day multiple
-# 3) previous day is not same-day multiple
-eligible_interval <- which(
-  !is.na(data$prev_date) &
-    data$n_records_day == 1 &
-    data$prev_n_records_day == 1
-)
-
-# define interval bins and candidate day values
-interval_bin_values <- list(
-  `1_6`     = 1:6,
-  `7_13`    = 7:13,
-  `14_29`   = 14:29,
-  `30_89`   = 30:89,
-  `90_112`  = 90:112,
-  `113_179` = 113:179,
-  `180_plus` = 180:240
-)
-
-# decide how many records to inject per bin
-n_per_bin <- min(floor(length(eligible_interval) / length(interval_bin_values)), 10)
-
-if (n_per_bin > 0) {
-  idx_interval <- sample(
-    eligible_interval,
-    size = n_per_bin * length(interval_bin_values),
-    replace = FALSE
+  alt_rows <- base_rows
+  alt_rows$vax_product <- vapply(
+    alt_rows$vax_product,
+    function(old_product) {
+      sample(setdiff(valid_products, old_product), 1)
+    },
+    character(1)
   )
 
-  # assign bins equally
-  assigned_bins <- rep(names(interval_bin_values), each = n_per_bin)
+  data <- bind_rows(data, dup_rows, alt_rows)
 
-  # sample one day value from each assigned bin
-  sampled_days <- mapply(
-    function(bin_name) sample(interval_bin_values[[bin_name]], 1),
-    assigned_bins
+  remaining <- setdiff(remaining, idx_complex)
+  
+  # 6) Inject interval patterns across interval bins
+  #    Exclude same-day multiple-record combinations
+
+  data <- data |>
+    arrange(patient_id, vax_date) |>
+    group_by(patient_id, vax_date) |>
+    mutate(n_records_day = n()) |>
+    ungroup() |>
+    arrange(patient_id, vax_date) |>
+    group_by(patient_id) |>
+    mutate(
+      prev_date = lag(vax_date),
+      prev_n_records_day = lag(n_records_day)
+    ) |>
+    ungroup()
+
+  # eligible for interval manipulation:
+  # 1) must have a previous vaccination date
+  # 2) current day is not same-day multiple
+  # 3) previous day is not same-day multiple
+  eligible_interval <- which(
+    !is.na(data$prev_date) &
+      data$n_records_day == 1 &
+      data$prev_n_records_day == 1
   )
 
-  # move current vaccination date to prev_date + sampled interval
-  data$vax_date[idx_interval] <- data$prev_date[idx_interval] + sampled_days
+  # define interval bins and candidate day values
+  interval_bin_values <- list(
+    `1_6`     = 1:6,
+    `7_13`    = 7:13,
+    `14_20`    = 14:20,
+    `21_29`    = 21:29,
+    `30_89`   = 30:89,
+    `90_112`  = 90:112,
+    `113_179` = 113:179,
+    `180_plus` = 180:240
+  )
+
+  # decide how many records to inject per bin
+  n_per_bin <- min(floor(length(eligible_interval) / length(interval_bin_values)), 10)
+
+  if (n_per_bin > 0) {
+    idx_interval <- sample(
+      eligible_interval,
+      size = n_per_bin * length(interval_bin_values),
+      replace = FALSE
+    )
+
+    # assign bins equally
+    assigned_bins <- rep(names(interval_bin_values), each = n_per_bin)
+
+    # sample one day value from each assigned bin
+    sampled_days <- mapply(
+      function(bin_name) sample(interval_bin_values[[bin_name]], 1),
+      assigned_bins
+    )
+
+    # move current vaccination date to prev_date + sampled interval
+    data$vax_date[idx_interval] <- data$prev_date[idx_interval] + sampled_days
 }
 
-data |>
-  select(-n_records_day, -prev_n_records_day, -prev_date) |>
+  #successfully tested that unmapped product names are detected and reported in the log.
+  ## 7) Inject missing product
+  #idx_na <- sample(remaining, min(length(remaining), max(5, floor(0.01 * n_all))))
+  #data$vax_product[idx_na] <- "TEST_PRODUCT"
+  
+  data |>
+    select(-n_records_day, -prev_n_records_day, -prev_date) |>
     arrange(patient_id, vax_date) |>
     recalculate_age_from_shift()
 }
