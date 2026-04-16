@@ -226,15 +226,15 @@ For each `flag_type`:
 #### Table 2. campaign_noninterval_flags  `count_campaign_noninterval_flags.csv`
 
 **Purpose:**  
-Summarises non‑interval flags by campaign.
+Summarises non‑interval flags by campaign, using campaign-specific active denominators.
 
 **Contents:**  
 For each `campaign × flag_type`:
 
 - `n_records`
 - `n_patients`
-- `denom_records_total`
-- `denom_patients_total`
+- `denom_records_group`
+- `denom_patients_group`
 
 
 ---

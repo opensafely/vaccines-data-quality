@@ -23,7 +23,7 @@ library(glue)
 library(fs)
 
 # Import custom functions
-source(here("analysis", "covid", "0_covid_utility_functions.R"))
+source(here("analysis", "covid", "fn_covid_data_quality.R"))
 source(here("analysis", "covid", "0_covid_design.R"))
 
 # create output directory
@@ -38,7 +38,6 @@ localrun <- Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")
 data_vax_ELD0 <- read_feather(here("output", "covid", "extract_covid", "vaccinations.arrow"))
 
 if (localrun) {
-  source(here("analysis", "covid", "1_covid_modify_dummy_extract.R"))
   data_vax_ELD0 <- 
     data_vax_ELD0 |>
       make_vax_baseline_clean(seed = 123) |>

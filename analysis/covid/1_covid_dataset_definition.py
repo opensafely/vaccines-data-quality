@@ -13,7 +13,8 @@ from ehrql import (
 from ehrql.tables.tpp import (
   patients,
   vaccinations,
-  ons_deaths
+  ons_deaths,
+  practice_registrations
 )
 
 # all covid-19 vaccination events
@@ -24,6 +25,20 @@ covid_vaccinations = (
   .where(vaccinations.target_disease.is_in(["SARS-2 CORONAVIRUS"]))
   .sort_by(vaccinations.date)
 )
+
+## patient-level registration dates ----
+first_tpp_registration = (
+    practice_registrations
+    .sort_by(practice_registrations.start_date)
+    .first_for_patient()
+)
+
+latest_tpp_registration = (
+    practice_registrations
+    .sort_by(practice_registrations.start_date)
+    .last_for_patient()
+)
+
 
 ## initialise dataset
 dataset = create_dataset()
@@ -43,5 +58,7 @@ dataset.add_event_table(
     vax_date = covid_vaccinations_ELD.date,
     vax_product = covid_vaccinations_ELD.product_name,
     age = patients.age_on(covid_vaccinations_ELD.date),
-    death_date = ons_deaths.date
+    death_date = ons_deaths.date,
+    registration_start_date=first_tpp_registration.start_date,
+    deregistration_date=latest_tpp_registration.end_date
 )
