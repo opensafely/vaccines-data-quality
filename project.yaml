@@ -1,14 +1,21 @@
-version: '4.0'
+version: '5.0'
 
 actions:
 #########################
 #  Flu vax data quality #
 #########################
-
+  design_elements_flu:
+    run: r:v2 analysis/flu/0_flu_design.R
+    needs: []
+    outputs:
+      moderately_sensitive:
+        json: output/outputs_flu/design_elements/*.json
+  
   extract_flu:
     run: ehrql:v1 generate-dataset analysis/flu/1_flu_dataset_definition.py
       --output output/outputs_flu/extract_flu:arrow
       #--dummy-data-file analysis/1-extract/dummy-data/dummy_varying.arrow
+    needs: [design_elements_flu]
     outputs:
       highly_sensitive:
         cohort: output/outputs_flu/extract_flu/*.arrow
@@ -21,9 +28,8 @@ actions:
         csv: output/outputs_flu/flu_data_quality/*.csv
 
 
-
 ###########################
-# Covid vax data quality #
+# COVID vax data quality  #
 ###########################
 
   extract_covid:
