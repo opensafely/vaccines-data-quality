@@ -26,17 +26,10 @@ covid_vaccinations = (
   .sort_by(vaccinations.date)
 )
 
-## patient-level registration dates ----
-first_tpp_registration = (
+## all GP registration periods
+registration_periods = (
     practice_registrations
     .sort_by(practice_registrations.start_date)
-    .first_for_patient()
-)
-
-latest_tpp_registration = (
-    practice_registrations
-    .sort_by(practice_registrations.start_date)
-    .last_for_patient()
 )
 
 
@@ -58,7 +51,12 @@ dataset.add_event_table(
     vax_date = covid_vaccinations_ELD.date,
     vax_product = covid_vaccinations_ELD.product_name,
     age = patients.age_on(covid_vaccinations_ELD.date),
-    death_date = ons_deaths.date,
-    registration_start_date=first_tpp_registration.start_date,
-    deregistration_date=latest_tpp_registration.end_date
+    death_date = ons_deaths.date
+)
+
+# registration event table
+dataset.add_event_table(
+    "registrations",
+    registration_start_date = registration_periods.start_date,
+    deregistration_date = registration_periods.end_date,
 )

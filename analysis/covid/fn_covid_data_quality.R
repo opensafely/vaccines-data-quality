@@ -62,8 +62,14 @@ make_summary_table_total <- function(data, group_vars, round = FALSE, sdc_thresh
 }
 
 
-# ---- helper B: campaign summary with campaign-specific active denominators ----
-make_summary_table_campaign_active <- function(flag_data, event_data, round = FALSE, sdc_threshold = NULL) {
+# ---- helper B: campaign summary with vaccination-date-specific active denominators ----
+make_summary_table_vaccination_date_specific_active <- function(
+  flag_data,
+  event_data,
+  registration_data,
+  round = FALSE,
+  sdc_threshold = NULL
+) {
 
   # function to optionally round values
   round_fun <- function(x) {
@@ -73,61 +79,73 @@ make_summary_table_campaign_active <- function(flag_data, event_data, round = FA
   # choose column suffix
   suffix <- if (round) "_midpoint6" else ""
 
-  # patient-level status dates
-  patient_status_df <-
+  # vaccination event data: one row per vaccination event
+  event_status_df <-
     event_data |>
+    dplyr::mutate(
+      vax_date = as.Date(vax_date),
+      death_date = as.Date(death_date)
+    ) |>
+    dplyr::arrange(patient_id, vax_date) |>
+    dplyr::mutate(
+      event_id = dplyr::row_number()
+    ) |>
+    dplyr::select(
+      event_id,
+      patient_id,
+      vax_date,
+      campaign,
+      death_date
+    )
+
+  # registration data: one row per registration period
+  registration_df <-
+    registration_data |>
     dplyr::select(
       patient_id,
-      death_date,
       registration_start_date,
       deregistration_date
     ) |>
     dplyr::distinct() |>
     dplyr::mutate(
-      death_date = as.Date(death_date),
       registration_start_date = as.Date(registration_start_date),
       deregistration_date = as.Date(deregistration_date)
     )
 
-  # campaign-specific active patients:
-  # active at campaign start =
-  #   registered on/before campaign start
-  #   AND not deregistered before campaign start
-  #   AND not dead before campaign start
-  patient_campaign_active_df <-
-    tidyr::crossing(
-      patient_status_df,
-      campaign_info |>
-        dplyr::select(campaign_label, campaign_start_date)
-    ) |>
+  # for each vaccination event, check whether vax_date falls within ANY registration interval
+  event_active_df <-
+    event_status_df |>
+    dplyr::left_join(registration_df, by = "patient_id") |>
     dplyr::mutate(
-      active_at_campaign_start =
-        (is.na(registration_start_date) | registration_start_date <= campaign_start_date) &
-        (is.na(deregistration_date) | deregistration_date >= campaign_start_date) &
-        (is.na(death_date) | death_date >= campaign_start_date)
+      registered_on_vax_date =
+        !is.na(registration_start_date) &
+        registration_start_date <= vax_date &
+        (is.na(deregistration_date) | deregistration_date >= vax_date),
+
+      active_on_vax_date =
+        registered_on_vax_date &
+        (is.na(death_date) | death_date >= vax_date)
     ) |>
-    dplyr::filter(active_at_campaign_start) |>
-    dplyr::transmute(
-      patient_id,
-      campaign = campaign_label
+    dplyr::group_by(event_id, patient_id, vax_date, campaign) |>
+    dplyr::summarise(
+      active_on_vax_date = any(active_on_vax_date, na.rm = TRUE),
+      .groups = "drop"
     )
 
-  # group denominator: patients active at campaign start
+  # group denominator: patients with >=1 active vaccination record in that campaign
   denom_patients_group_df <-
-    patient_campaign_active_df |>
+    event_active_df |>
+    dplyr::filter(active_on_vax_date) |>
     dplyr::group_by(campaign) |>
     dplyr::summarise(
       denom_patients_group = round_fun(dplyr::n_distinct(patient_id)),
       .groups = "drop"
     )
 
-  # group denominator: records in that campaign contributed by patients active at campaign start
+  # group denominator: active vaccination records in that campaign
   denom_records_group_df <-
-    event_data |>
-    dplyr::inner_join(
-      patient_campaign_active_df,
-      by = c("patient_id", "campaign")
-    ) |>
+    event_active_df |>
+    dplyr::filter(active_on_vax_date) |>
     dplyr::group_by(campaign) |>
     dplyr::summarise(
       denom_records_group = round_fun(dplyr::n()),

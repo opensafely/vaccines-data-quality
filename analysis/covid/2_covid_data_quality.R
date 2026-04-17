@@ -304,19 +304,22 @@ write_csv(
 )
 
 
-# ---- Table 2: Campaign summary of non-interval flags with campaign-specific active denominators ----
+# ---- Table 2: Campaign summary of non-interval flags with vaccination-date-specific active denominators ----
+data_registration_ELD <- read_feather(here("output", "covid", "extract_covid","registrations.arrow"))
 table_campaign_noninterval_flags_unrounded <-
-  make_summary_table_campaign_active(
+  make_summary_table_vaccination_date_specific_active(
     flag_data = flag_long_noninterval,
     event_data = data_vax_ELD,
+    registration_data = data_registration_ELD,
     round = FALSE
   ) |>
   arrange(campaign, flag_type)
 
 table_campaign_noninterval_flags_rounded <-
-  make_summary_table_campaign_active(
+  make_summary_table_vaccination_date_specific_active(
     flag_data = flag_long_noninterval,
     event_data = data_vax_ELD,
+    registration_data = data_registration_ELD,
     round = TRUE,
     sdc_threshold = sdc_threshold
   ) |>
