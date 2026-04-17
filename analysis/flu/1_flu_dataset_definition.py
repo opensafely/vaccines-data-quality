@@ -31,16 +31,16 @@ from ehrql.tables.tpp import (
 from analysis import codelists
 
 study_dates_flu = loads(
-    Path("analysis/flu/study_dates_flu.json").read_text(),
+    Path("output/outputs_flu/design_elements/study_dates_flu.json").read_text(),
 )
 
 # Change these in ./design.R if necessary
 start_date = study_dates_flu["start_date"]
 end_date = study_dates_flu["end_date"]
 
-# all covid-19 vaccination events
+# all flu vaccination events
 
-## Vaccineations table 
+## Vaccinations table 
 flu_vaccinations_table = (
   vaccinations
   .where(vaccinations.target_disease.is_in(["INFLUENZA"]))
