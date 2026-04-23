@@ -221,7 +221,7 @@ approval_lookup <- c(
   moderna_JN1 = "2024-09-02",
   #moderna_unspecified = "2021-01-08",
 
-  sanofigsk_B1 = "2022-12-21",
+  sanofigsk_B1 = "2022-12-21"
   #novavax = "2022-02-03",
   #novavax_JN1 = "2024-11-13"
   #jansenn = "2021-05-28",
