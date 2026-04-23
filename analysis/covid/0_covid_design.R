@@ -103,8 +103,6 @@ vax_product_lookup <- c(
   "moderna_JN1" = "Spikevax JN.1 COVID-19 Vacc 0.1mg/ml inj md vials (Moderna, Inc)",
   "moderna_omicron2" = "COVID-19 Vaccine Moderna (mRNA-1273.529) 50micrograms/0.25ml dose sol for inj MDV",
   "moderna_unspecified" = "COVID-19 Vaccine Moderna 0.5ml dispersion for inj vials",
-  "moderna_LP81" = "Spikevax LP.8.1 COVID-19 Vacc 0.1mg/ml inj md vials",
-
 
   # Sanofi-GSK
   "sanofigsk_B1" = "COVID-19 Vacc VidPrevtyn (B.1.351) 0.5ml inj multidose vials",
@@ -114,7 +112,6 @@ vax_product_lookup <- c(
 
   # Novavax
   "novavax" = "COVID-19 Vac Nuvaxovid (recombinant, adj) 5micrograms/0.5ml dose susp for inj MDV (Novavax CZ a.s.)",
-  "novavax_JN1" = "Nuvaxovid JN.1 COVID-19 Vaccine 0.5ml dose inj pfs",
 
   # Sputnik
   "sputnik_i_multi" = "COVID-19 Vacc Sputnik V Component I 0.5ml multidose vials",
@@ -176,12 +173,10 @@ vax_product_core_levels <- c(
   "moderna_XBB15",
   "moderna_JN1",
   "moderna_omicron2",
-  "moderna_LP81",
-  
+
   "sanofigsk_B1",
 
   "novavax",
-  "novavax_JN1",
 
   "jansenn",
   "coronavac",
@@ -221,9 +216,8 @@ approval_lookup <- c(
   moderna_JN1 = "2024-09-02",
   #moderna_unspecified = "2021-01-08",
 
-  sanofigsk_B1 = "2022-12-21",
+  sanofigsk_B1 = "2022-12-21"
   #novavax = "2022-02-03",
-  novavax_JN1 = "2024-11-13"
   #jansenn = "2021-05-28",
   #valneva = "2022-04-14"
 )
