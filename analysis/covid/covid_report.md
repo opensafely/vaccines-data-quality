@@ -61,7 +61,7 @@ Because rollout dates vary by product, product‑approval mismatches are assesse
 #### Approval reference data:
 - The approval lookup table is based on the ECHO protocol and supplemented with publicly available regulatory sources to improve completeness.
 - Products not included in this list are not assumed to be erroneous and are retained for descriptive quantification.
-- **The current workflow is aligned with the ECHO protocol**.
+- **The current workflow is aligned with the [ECHO protocol (table2)](https://github.com/opensafely/covid-vaccine-history/blob/main/assets/ECHO-WP1-protocol-v1.2.pdf)**.
 
 | code                         | approval date  | Consistent_with_ECHO_Table2   | website |
 |--------------------------|---------------|-------------|------------------------------|
@@ -90,6 +90,7 @@ Because rollout dates vary by product, product‑approval mismatches are assesse
 | moderna_unspecified         | 2021‑01‑08|(not in protocol)      | <https://modernacovid19global.com/assets/n2j6zptc9y3o/4q9CXCUd9RG2Q7IzUUeE6t/34cd8bc1260dab1b6be767fb411d78be/Spikevax__previously_COVID-19_Vaccine_-_SmPC-_Qatar_-_English.pdf> |
 | sanofigsk_B1                | 2022‑12‑21  | Yes   | https://www.gov.uk/government/news/sanofi-pasteur-covid-19-vaccine-authorised-by-mhra |
 | novavax                     | 2022‑02‑03|(not in protocol)      | https://www.gov.uk/government/news/novavax-covid-19-vaccine-nuvaxovid-approved-by-mhra |
+| novavax_JN1 | 2024-11-13 | (not in protocol) | https://www.gov.uk/government/news/mhra-approves-adapted-nuvaxovid-jn1-covid-19-vaccines-for-adults-and-children-aged-12-plus |
 | jansenn                     | 2021‑05‑28|(not in protocol)     | https://www.gov.uk/government/publications/regulatory-approval-of-covid-19-vaccine-janssen |
 | valneva                     | 2022‑04‑14|(not in protocol)     | https://www.covidvaccineresearch.org/news/valneva-vaccine-approved-use-uk |
 ---
