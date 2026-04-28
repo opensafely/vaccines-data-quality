@@ -11,7 +11,6 @@
 
 # 1. General utility functions ----
 roundmid_any <- function(x, to = 1) {
-  # like ceiling_any, but centers on (integer) midpoint of the rounding points
   if (to == 0) {
     x
   } else {
