@@ -29,7 +29,7 @@ make_summary_table_total <- function(data, group_vars, round = FALSE, sdc_thresh
   }
 
   # choose column suffix
-  suffix <- if (round) "_midpoint6" else ""
+  suffix <- if (round) "_midpoint10" else ""
 
   denom_records_total <- round_fun(nrow(data))
   denom_patients_total <- round_fun(dplyr::n_distinct(data$patient_id))
@@ -76,7 +76,7 @@ make_summary_table_vaccination_date_specific_active <- function(
   }
 
   # choose column suffix
-  suffix <- if (round) "_midpoint6" else ""
+  suffix <- if (round) "_midpoint10" else ""
 
   # vaccination event data: one row per vaccination event
   event_status_df <-
@@ -189,7 +189,7 @@ make_interval_table <- function(data, group_var, round = FALSE, sdc_threshold = 
   }
 
   # choose column suffix
-  suffix <- if (round) "_midpoint6" else ""
+  suffix <- if (round) "_midpoint10" else ""
 
   denom_records_total <- round_fun(nrow(data))
   denom_patients_total <- round_fun(dplyr::n_distinct(data$patient_id))
