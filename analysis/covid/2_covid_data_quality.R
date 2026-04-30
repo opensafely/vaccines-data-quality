@@ -36,6 +36,14 @@ options(width = 200) # set output width for capture.output
 localrun <- Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")
 
 data_vax_ELD0 <- read_feather(here("output", "covid", "extract_covid", "vaccinations.arrow"))
+data_vax_ELD0 <- data_vax_ELD0 |>
+  mutate(
+    patient_id = as.character(patient_id),
+    vax_date = as.Date(vax_date),
+    vax_product = as.character(vax_product),
+    age = as.integer(age),
+    death_date = as.Date(death_date)
+  )
 
 if (localrun) {
   data_vax_ELD0 <- 
@@ -306,6 +314,13 @@ write_csv(
 
 # ---- Table 2: Campaign summary of non-interval flags with vaccination-date-specific active denominators ----
 data_registration_ELD <- read_feather(here("output", "covid", "extract_covid","registrations.arrow"))
+data_registration_ELD <- data_registration_ELD |>
+  mutate(
+    patient_id = as.character(patient_id),
+    registration_start_date = as.Date(registration_start_date),
+    deregistration_date = as.Date(deregistration_date)
+  )
+  
 table_campaign_noninterval_flags_unrounded <-
   make_summary_table_vaccination_date_specific_active(
     flag_data = flag_long_noninterval,
