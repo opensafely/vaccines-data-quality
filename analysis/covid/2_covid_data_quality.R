@@ -304,64 +304,53 @@ write_csv(
 )
 
 
-# ---- Table 2: Campaign summary of non-interval flags with vaccination-date-specific active denominators ----
+# ---- Table 2: Campaign x product summary of non-interval flags with vaccination-date-specific active denominators ----
+# Exclude the two pre-rollout categories for campaign/product summaries.
+# These early categories are retained in the overall summary only.
 data_registration_ELD <- read_feather(here("output", "covid", "extract_covid","registrations.arrow"))
-table_campaign_noninterval_flags_unrounded <-
+
+analysis_campaigns <- setdiff(
+  as.character(campaign_info$campaign_label),
+  c("Pre-2020-04-23", "Pre-roll-out")
+)
+
+flag_long_noninterval_primary_onwards <-
+  flag_long_noninterval |>
+  dplyr::filter(campaign %in% analysis_campaigns)
+
+data_vax_ELD_primary_onwards <-
+  data_vax_ELD |>
+  dplyr::filter(campaign %in% analysis_campaigns)
+
+table_campaign_product_noninterval_flags_unrounded <-
   make_summary_table_vaccination_date_specific_active(
-    flag_data = flag_long_noninterval,
-    event_data = data_vax_ELD,
+    flag_data = flag_long_noninterval_primary_onwards,
+    event_data = data_vax_ELD_primary_onwards,
     registration_data = data_registration_ELD,
+    group_vars = c("campaign", "vax_product", "flag_type"),
     round = FALSE
   ) |>
-  arrange(campaign, flag_type)
+  dplyr::arrange(campaign, vax_product, flag_type)
 
-table_campaign_noninterval_flags_rounded <-
+table_campaign_product_noninterval_flags_rounded <-
   make_summary_table_vaccination_date_specific_active(
-    flag_data = flag_long_noninterval,
-    event_data = data_vax_ELD,
+    flag_data = flag_long_noninterval_primary_onwards,
+    event_data = data_vax_ELD_primary_onwards,
     registration_data = data_registration_ELD,
+    group_vars = c("campaign", "vax_product", "flag_type"),
     round = TRUE,
     sdc_threshold = sdc_threshold
   ) |>
-  arrange(campaign, flag_type)
+  dplyr::arrange(campaign, vax_product, flag_type)
 
 write_csv(
-  table_campaign_noninterval_flags_unrounded,
-  fs::path(output_dir, "count_campaign_noninterval_flags_unrounded.csv")
+  table_campaign_product_noninterval_flags_unrounded,
+  fs::path(output_dir, "count_campaign_product_noninterval_flags_unrounded.csv")
 )
 
 write_csv(
-  table_campaign_noninterval_flags_rounded,
-  fs::path(output_dir, "count_campaign_noninterval_flags.csv")
-)
-
-
-# ---- Table 3: Product summary of non-interval flags ----
-table_product_noninterval_flags_unrounded <-
-  make_summary_table_total(
-    data = flag_long_noninterval,
-    group_vars = c("vax_product", "flag_type"),
-    round = FALSE
-  ) |>
-  arrange(vax_product, flag_type)
-
-table_product_noninterval_flags_rounded <-
-  make_summary_table_total(
-    data = flag_long_noninterval,
-    group_vars = c("vax_product", "flag_type"),
-    round = TRUE,
-    sdc_threshold = sdc_threshold
-  ) |>
-  arrange(vax_product, flag_type)
-
-write_csv(
-  table_product_noninterval_flags_unrounded,
-  fs::path(output_dir, "count_product_noninterval_flags_unrounded.csv")
-)
-
-write_csv(
-  table_product_noninterval_flags_rounded,
-  fs::path(output_dir, "count_product_noninterval_flags.csv")
+  table_campaign_product_noninterval_flags_rounded,
+  fs::path(output_dir, "count_campaign_product_noninterval_flags.csv")
 )
 
 

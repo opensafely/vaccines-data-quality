@@ -66,6 +66,7 @@ make_summary_table_vaccination_date_specific_active <- function(
   flag_data,
   event_data,
   registration_data,
+  group_vars,
   round = FALSE,
   sdc_threshold = NULL
 ) {
@@ -154,7 +155,9 @@ make_summary_table_vaccination_date_specific_active <- function(
   # numerator
   numerator_df <-
     flag_data |>
-    dplyr::group_by(campaign, flag_type) |>
+    dplyr::group_by(
+      dplyr::across(all_of(group_vars))
+    ) |>
     dplyr::summarise(
       n_records = round_fun(dplyr::n()),
       n_patients = round_fun(dplyr::n_distinct(patient_id)),
@@ -176,7 +179,7 @@ make_summary_table_vaccination_date_specific_active <- function(
   }
 
   out |>
-    dplyr::select(campaign, flag_type, dplyr::everything())
+    dplyr::select(all_of(group_vars), dplyr::everything())
 }
 
 
