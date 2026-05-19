@@ -116,7 +116,6 @@ data_vax_ELD <-
   as_tibble()
 
 
-
 # ---- 3.3 Multiple Vaccinations on the Same Day ----
 
 products_cooccurrence_flat <- 
@@ -137,9 +136,6 @@ products_cooccurrence_flat <-
     .groups = "drop"
   ) |>
   mutate(
-    flag_same_day_multiple =
-      total_records_day > 1,
-
     flag_same_day_same_product =
       total_records_day > 1 & n_products_day == 1,
 
@@ -154,7 +150,6 @@ data_vax_ELD <-
       select(
         patient_id, vax_date,
         total_records_day, n_products_day, product_pattern,
-        flag_same_day_multiple,
         flag_same_day_same_product,
         flag_same_day_mixed_product
       ),
@@ -176,7 +171,8 @@ data_vax_ELD <-
 data_vax_interval <-
   data_vax_ELD |>
   filter(campaign != "Pre-2020-04-23") |>
-  filter(!flag_same_day_multiple) |> # exclude same-day multiple-record combinations
+  filter(!flag_same_day_same_product) |> # exclude same-day multiple-record combinations
+  filter(!flag_same_day_same_product) |> # exclude same-day multiple-record combinations
   arrange(patient_id, vax_date) |>
   group_by(patient_id) |>
   mutate(
@@ -255,7 +251,6 @@ flag_long_noninterval <-
     flag_pre_rollout_date,
     flag_unapproved_product,
     flag_product_before_approval,
-    flag_same_day_multiple,
     flag_same_day_same_product,
     flag_same_day_mixed_product
   ) |>
