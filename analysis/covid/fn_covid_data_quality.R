@@ -21,7 +21,7 @@ roundmid_any <- function(x, to = 1) {
 # 2. Summary table functions ----
 
 # ---- helper A: summary table with total denominator only ----
-make_summary_table_total <- function(data, group_vars, round = FALSE, sdc_threshold = NULL) {
+make_summary_table_total <- function(data, group_vars, denom_data, round = FALSE, sdc_threshold = NULL) {
 
   # function to optionally round values
   round_fun <- function(x) {
@@ -31,8 +31,8 @@ make_summary_table_total <- function(data, group_vars, round = FALSE, sdc_thresh
   # choose column suffix
   suffix <- if (round) "_midpoint10" else ""
 
-  denom_records_total <- round_fun(nrow(data))
-  denom_patients_total <- round_fun(dplyr::n_distinct(data$patient_id))
+  denom_records_total <- round_fun(nrow(denom_data))
+  denom_patients_total <- round_fun(dplyr::n_distinct(denom_data$patient_id))
 
   out <-
     data |>

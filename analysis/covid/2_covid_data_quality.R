@@ -274,6 +274,7 @@ flag_long_noninterval <-
 table_overall_noninterval_flags_unrounded <-
   make_summary_table_total(
     data = flag_long_noninterval,
+    denom_data = data_vax_ELD,
     group_vars = c("flag_type"),
     round = FALSE
   ) |>
@@ -282,6 +283,7 @@ table_overall_noninterval_flags_unrounded <-
 table_overall_noninterval_flags_rounded <-
   make_summary_table_total(
     data = flag_long_noninterval,
+    denom_data = data_vax_ELD,
     group_vars = c("flag_type"),
     round = TRUE,
     sdc_threshold = sdc_threshold
