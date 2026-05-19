@@ -350,8 +350,7 @@ write_csv(
   fs::path(output_dir, "count_campaign_product_noninterval_flags.csv")
 )
 
-
-# ---- Table 4: interval context x interval bin ----
+# ---- Table 3: interval context x interval bin ----
 table_interval_context_unrounded <-
   make_interval_table(
     data = data_vax_interval,
@@ -377,6 +376,38 @@ write_csv(
 write_csv(
   table_interval_context_rounded,
   fs::path(output_dir, "count_interval_context.csv")
+)
+
+
+# ---- Table 4: campaign x interval bin ----
+# Current campaign = campaign of the current vaccination event.
+# This shows the interval distribution within each campaign.
+
+table_interval_campaign_unrounded <-
+  make_interval_table(
+    data = data_vax_interval,
+    group_var = "campaign",
+    round = FALSE
+  ) |>
+  arrange(campaign, interval_bin)
+
+table_interval_campaign_rounded <-
+  make_interval_table(
+    data = data_vax_interval,
+    group_var = "campaign",
+    round = TRUE,
+    sdc_threshold = sdc_threshold
+  ) |>
+  arrange(campaign, interval_bin)
+
+write_csv(
+  table_interval_campaign_unrounded,
+  fs::path(output_dir, "count_interval_campaign_unrounded.csv")
+)
+
+write_csv(
+  table_interval_campaign_rounded,
+  fs::path(output_dir, "count_interval_campaign.csv")
 )
 
 
