@@ -192,8 +192,8 @@ approval_lookup <- c(
   pfizer_BA45 = "2022-09-11", #"2022-09-12"?
   pfizer_XBB15 = "2023-09-05",
   pfizer_JN1 = "2024-07-24",
-  #pfizer_KP2 = "2024-10-10",
-  #pfizer_KP2_pfs = "2024-10-10",
+  pfizer_KP2 = "2024-10-10",
+  pfizer_KP2_pfs = "2024-10-10",
   #pfizer_unspecified = "2020-12-02",
   #pfizer_original_children = "2021-12-22",
   #pfizer_JN1_children = "2024-07-24",
@@ -216,6 +216,69 @@ approval_lookup <- c(
   #jansenn = "2021-05-28",
   #valneva = "2022-04-14"
 )
+
+# Approval dates come mainly from Table 3 of the ECHO protocol.
+campaign_product_lookup <- list(
+
+  "Primary series" = c(
+    "pfizer_original",   # BNT162b2
+    "moderna_original",  # mRNA-1273
+    "az_original"        # ChAdOx1-S
+  ),
+
+  "Autumn 2021" = c(
+    "pfizer_original",   # BNT162b2
+    "moderna_original",  # mRNA-1273
+    "az_original"        # ChAdOx1-S
+  ),
+
+  "Spring 2022" = c(
+    "pfizer_original",   # BNT162b2
+    "moderna_original"   # mRNA-1273
+  ),
+
+  "Autumn 2022" = c(
+    "pfizer_original",   # BNT162b2
+    "moderna_original",  # mRNA-1273
+    "pfizer_BA1",        # BNT162b2/BA.1
+    "moderna_omicron"    # mRNA-1273/BA.1
+  ),
+
+  "Spring 2023" = c(
+    "pfizer_BA45",       # BNT162b2/BA.4-5
+    "moderna_BA45",      # mRNA-1273/BA.4-5
+    "sanofigsk_B1"       # Vidprevtyn
+  ),
+
+  "Autumn 2023" = c(
+    "pfizer_BA45",       # BNT162b2/BA.4-5
+    "moderna_BA45",      # mRNA-1273/BA.4-5
+    "pfizer_XBB15",      # BNT162b2.XBB.1.5
+    "moderna_XBB15",     # mRNA-1273.XBB.1.5
+    "sanofigsk_B1"       # Vidprevtyn
+  ),
+
+  "Spring 2024" = c(
+    "pfizer_XBB15",      # BNT162b2.XBB.1.5
+    "moderna_XBB15"      # mRNA-1273.XBB.1.5
+  ),
+
+  "Autumn 2024" = c(
+    "pfizer_JN1",        # BNT162b2.JN.1
+    "moderna_JN1"        # mRNA-1273.JN.1
+  ),
+
+  "Spring 2025" = c(
+    "pfizer_JN1",        # BNT162b2.JN.1
+    "moderna_JN1"        # mRNA-1273.JN.1
+  ),
+
+  "Autumn 2025" = c(
+    "pfizer_KP2",        # BNT162b2.KP.2
+    "pfizer_KP2_pfs"     # BNT162b2.KP.2
+  )
+)
+
 
 # relabel_from_lookup <- function(x, from, to, source){
 #   left_join(tibble(x=x), source, by = {{from}})[[{{to}}]]
