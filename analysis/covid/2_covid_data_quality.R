@@ -116,7 +116,6 @@ data_vax_ELD <-
   as_tibble()
 
 
-
 # ---- 3.3 Multiple Vaccinations on the Same Day ----
 
 products_cooccurrence_flat <- 
@@ -137,9 +136,6 @@ products_cooccurrence_flat <-
     .groups = "drop"
   ) |>
   mutate(
-    flag_same_day_multiple =
-      total_records_day > 1,
-
     flag_same_day_same_product =
       total_records_day > 1 & n_products_day == 1,
 
@@ -154,7 +150,6 @@ data_vax_ELD <-
       select(
         patient_id, vax_date,
         total_records_day, n_products_day, product_pattern,
-        flag_same_day_multiple,
         flag_same_day_same_product,
         flag_same_day_mixed_product
       ),
@@ -176,7 +171,16 @@ data_vax_ELD <-
 data_vax_interval <-
   data_vax_ELD |>
   filter(campaign != "Pre-2020-04-23") |>
-  filter(!flag_same_day_multiple) |> # exclude same-day multiple-record combinations
+  
+  # deduplicate same-day same-product records
+  arrange(patient_id, vax_date, vax_product) |>
+  group_by(patient_id, vax_date, vax_product) |>
+  slice(1) |>
+  ungroup() |>
+
+  # exclude mixed-product records flagged for now
+  filter(!flag_same_day_mixed_product) |>  # may be revised once standard cleaning rules are agreed 
+
   arrange(patient_id, vax_date) |>
   group_by(patient_id) |>
   mutate(
@@ -255,7 +259,6 @@ flag_long_noninterval <-
     flag_pre_rollout_date,
     flag_unapproved_product,
     flag_product_before_approval,
-    flag_same_day_multiple,
     flag_same_day_same_product,
     flag_same_day_mixed_product
   ) |>
@@ -279,6 +282,7 @@ flag_long_noninterval <-
 table_overall_noninterval_flags_unrounded <-
   make_summary_table_total(
     data = flag_long_noninterval,
+    denom_data = data_vax_ELD,
     group_vars = c("flag_type"),
     round = FALSE
   ) |>
@@ -287,6 +291,7 @@ table_overall_noninterval_flags_unrounded <-
 table_overall_noninterval_flags_rounded <-
   make_summary_table_total(
     data = flag_long_noninterval,
+    denom_data = data_vax_ELD,
     group_vars = c("flag_type"),
     round = TRUE,
     sdc_threshold = sdc_threshold
@@ -304,68 +309,56 @@ write_csv(
 )
 
 
-# ---- Table 2: Campaign summary of non-interval flags with vaccination-date-specific active denominators ----
+# ---- Table 2: Campaign x product summary of non-interval flags with vaccination-date-specific active denominators ----
+# Exclude the two pre-rollout categories for campaign/product summaries.
+# These early categories are retained in the overall summary only.
 data_registration_ELD <- read_feather(here("output", "covid", "extract_covid","registrations.arrow"))
-table_campaign_noninterval_flags_unrounded <-
+
+analysis_campaigns <- setdiff(
+  as.character(campaign_info$campaign_label),
+  c("Pre-2020-04-23", "Pre-roll-out")
+)
+
+flag_long_noninterval_primary_onwards <-
+  flag_long_noninterval |>
+  dplyr::filter(campaign %in% analysis_campaigns)
+
+data_vax_ELD_primary_onwards <-
+  data_vax_ELD |>
+  dplyr::filter(campaign %in% analysis_campaigns)
+
+table_campaign_product_noninterval_flags_unrounded <-
   make_summary_table_vaccination_date_specific_active(
-    flag_data = flag_long_noninterval,
-    event_data = data_vax_ELD,
+    flag_data = flag_long_noninterval_primary_onwards,
+    event_data = data_vax_ELD_primary_onwards,
     registration_data = data_registration_ELD,
+    group_vars = c("campaign", "vax_product", "flag_type"),
     round = FALSE
   ) |>
-  arrange(campaign, flag_type)
+  dplyr::arrange(campaign, vax_product, flag_type)
 
-table_campaign_noninterval_flags_rounded <-
+table_campaign_product_noninterval_flags_rounded <-
   make_summary_table_vaccination_date_specific_active(
-    flag_data = flag_long_noninterval,
-    event_data = data_vax_ELD,
+    flag_data = flag_long_noninterval_primary_onwards,
+    event_data = data_vax_ELD_primary_onwards,
     registration_data = data_registration_ELD,
+    group_vars = c("campaign", "vax_product", "flag_type"),
     round = TRUE,
     sdc_threshold = sdc_threshold
   ) |>
-  arrange(campaign, flag_type)
+  dplyr::arrange(campaign, vax_product, flag_type)
 
 write_csv(
-  table_campaign_noninterval_flags_unrounded,
-  fs::path(output_dir, "count_campaign_noninterval_flags_unrounded.csv")
+  table_campaign_product_noninterval_flags_unrounded,
+  fs::path(output_dir, "count_campaign_product_noninterval_flags_unrounded.csv")
 )
 
 write_csv(
-  table_campaign_noninterval_flags_rounded,
-  fs::path(output_dir, "count_campaign_noninterval_flags.csv")
+  table_campaign_product_noninterval_flags_rounded,
+  fs::path(output_dir, "count_campaign_product_noninterval_flags.csv")
 )
 
-
-# ---- Table 3: Product summary of non-interval flags ----
-table_product_noninterval_flags_unrounded <-
-  make_summary_table_total(
-    data = flag_long_noninterval,
-    group_vars = c("vax_product", "flag_type"),
-    round = FALSE
-  ) |>
-  arrange(vax_product, flag_type)
-
-table_product_noninterval_flags_rounded <-
-  make_summary_table_total(
-    data = flag_long_noninterval,
-    group_vars = c("vax_product", "flag_type"),
-    round = TRUE,
-    sdc_threshold = sdc_threshold
-  ) |>
-  arrange(vax_product, flag_type)
-
-write_csv(
-  table_product_noninterval_flags_unrounded,
-  fs::path(output_dir, "count_product_noninterval_flags_unrounded.csv")
-)
-
-write_csv(
-  table_product_noninterval_flags_rounded,
-  fs::path(output_dir, "count_product_noninterval_flags.csv")
-)
-
-
-# ---- Table 4: interval context x interval bin ----
+# ---- Table 3: interval context x interval bin ----
 table_interval_context_unrounded <-
   make_interval_table(
     data = data_vax_interval,
@@ -391,6 +384,38 @@ write_csv(
 write_csv(
   table_interval_context_rounded,
   fs::path(output_dir, "count_interval_context.csv")
+)
+
+
+# ---- Table 4: campaign x interval bin ----
+# Current campaign = campaign of the current vaccination event.
+# This shows the interval distribution within each campaign.
+
+table_interval_campaign_unrounded <-
+  make_interval_table(
+    data = data_vax_interval,
+    group_var = "campaign",
+    round = FALSE
+  ) |>
+  arrange(campaign, interval_bin)
+
+table_interval_campaign_rounded <-
+  make_interval_table(
+    data = data_vax_interval,
+    group_var = "campaign",
+    round = TRUE,
+    sdc_threshold = sdc_threshold
+  ) |>
+  arrange(campaign, interval_bin)
+
+write_csv(
+  table_interval_campaign_unrounded,
+  fs::path(output_dir, "count_interval_campaign_unrounded.csv")
+)
+
+write_csv(
+  table_interval_campaign_rounded,
+  fs::path(output_dir, "count_interval_campaign.csv")
 )
 
 
@@ -449,4 +474,46 @@ write_csv(
 write_csv(
   table_interval_product_transition_rounded,
   fs::path(output_dir, "count_interval_product_transition.csv")
+)
+
+
+## count same-day mixed-product co-occurrence ----
+
+mixed_products_cooccurrence_flat <-
+  data_vax_ELD |>
+  filter(flag_same_day_mixed_product) |>
+  count(patient_id, vax_date, vax_product, name = "n") |>
+  arrange(patient_id, vax_date, vax_product) |>
+  group_by(patient_id, vax_date) |>
+  summarise(
+    vax_product =
+      paste0(n, "x ", as.character(vax_product),
+             collapse = "  --AND-- "),
+    .groups = "drop"
+  )
+
+count_mixed_products_cooccurrence_unrounded <-
+  mixed_products_cooccurrence_flat |>
+  group_by(vax_product) |>
+  summarise(
+    count_total = n(),
+    .groups = "drop"
+  ) |>
+  arrange(desc(count_total)) |>
+  as_tibble()
+
+count_mixed_products_cooccurrence <-
+  count_mixed_products_cooccurrence_unrounded |>
+  mutate(
+    count_total = roundmid_any(count_total, sdc_threshold)
+  )
+
+write_csv(
+  count_mixed_products_cooccurrence_unrounded,
+  fs::path(output_dir, "count_same_day_mixed_product_cooccurrence_unrounded.csv")
+)
+
+write_csv(
+  count_mixed_products_cooccurrence,
+  fs::path(output_dir, "count_same_day_mixed_product_cooccurrence.csv")
 )
