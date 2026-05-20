@@ -171,8 +171,16 @@ data_vax_ELD <-
 data_vax_interval <-
   data_vax_ELD |>
   filter(campaign != "Pre-2020-04-23") |>
-  filter(!flag_same_day_same_product) |> # exclude same-day multiple-record combinations
-  filter(!flag_same_day_same_product) |> # exclude same-day multiple-record combinations
+  
+  # deduplicate same-day same-product records
+  arrange(patient_id, vax_date, vax_product) |>
+  group_by(patient_id, vax_date, vax_product) |>
+  slice(1) |>
+  ungroup() |>
+
+  # exclude mixed-product records flagged for now
+  filter(!flag_same_day_mixed_product) |>  # may be revised once standard cleaning rules are agreed 
+
   arrange(patient_id, vax_date) |>
   group_by(patient_id) |>
   mutate(
