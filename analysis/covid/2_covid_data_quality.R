@@ -475,3 +475,45 @@ write_csv(
   table_interval_product_transition_rounded,
   fs::path(output_dir, "count_interval_product_transition.csv")
 )
+
+
+## count same-day mixed-product co-occurrence ----
+
+mixed_products_cooccurrence_flat <-
+  data_vax_ELD |>
+  filter(flag_same_day_mixed_product) |>
+  count(patient_id, vax_date, vax_product, name = "n") |>
+  arrange(patient_id, vax_date, vax_product) |>
+  group_by(patient_id, vax_date) |>
+  summarise(
+    vax_product =
+      paste0(n, "x ", as.character(vax_product),
+             collapse = "  --AND-- "),
+    .groups = "drop"
+  )
+
+count_mixed_products_cooccurrence_unrounded <-
+  mixed_products_cooccurrence_flat |>
+  group_by(vax_product) |>
+  summarise(
+    count_total = n(),
+    .groups = "drop"
+  ) |>
+  arrange(desc(count_total)) |>
+  as_tibble()
+
+count_mixed_products_cooccurrence <-
+  count_mixed_products_cooccurrence_unrounded |>
+  mutate(
+    count_total = roundmid_any(count_total, sdc_threshold)
+  )
+
+write_csv(
+  count_mixed_products_cooccurrence_unrounded,
+  fs::path(output_dir, "count_same_day_mixed_product_cooccurrence_unrounded.csv")
+)
+
+write_csv(
+  count_mixed_products_cooccurrence,
+  fs::path(output_dir, "count_same_day_mixed_product_cooccurrence.csv")
+)
