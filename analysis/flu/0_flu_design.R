@@ -31,8 +31,8 @@ sdc_threshold <- 10
 study_dates_flu <-
   list(
     firstpossiblevax_date = "2005-10-01",
-    start_date = "2020-10-01",
-    end_date = "2026-03-31"
+    start_date = "2018-09-01",
+    end_date = "2026-05-01"
   ) |>
   lapply(as.Date)
 
@@ -46,7 +46,7 @@ write_json(
 # Flu vaccine campaign dates -------------
 
 # define years we want
-years <- 2020:2025
+years <- 2018:2025
 
 # create campaign flu table
 campaign_info_flu <-
@@ -60,7 +60,7 @@ campaign_info_flu <-
   ) %>%
   bind_rows(
     tibble(
-      campaign_label = "Pre-2020",
+      campaign_label = "Pre-2018",
       campaign_start_date = ymd("1900-01-01"),
       early_milestone_date = ymd("1900-01-01"),
       primary_milestone_date = ymd("1900-01-01"),
@@ -71,7 +71,7 @@ campaign_info_flu <-
   mutate(
     across(c(campaign_start_date, primary_milestone_date, age_date), as.Date),
   #  early_milestone_date = campaign_start_date + (7 * 8) - 1, # end of eighth week after campaign_start_date
-    final_milestone_date = lead(campaign_start_date, 1, as.Date("2026-02-01")) - 1 # day before next campaign date (or some arbitrary future date if last campaign)
+    final_milestone_date = lead(campaign_start_date, 1, as.Date("2026-05-01")) - 1 # day before next campaign date (or some arbitrary future date if last campaign)
   )  |>
   mutate(
     early_milestone_days = as.integer(early_milestone_date - campaign_start_date) + 1L,
