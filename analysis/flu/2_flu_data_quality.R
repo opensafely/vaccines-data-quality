@@ -228,7 +228,7 @@ table_vax_by_epiweek_source <- flu_long |>
   mutate(
     n_vax = roundmid_any(n_vax, sdc_threshold)
   )
-write_csv(table_vax_by_date_source,here(output_dir, "table_vax_by_epiweek_source.csv"))
+write_csv(table_vax_by_epiweek_source,here(output_dir, "table_vax_by_epiweek_source.csv"))
 
 # Output 5: Table SNOMED. Vax by SNOMED codes
 
