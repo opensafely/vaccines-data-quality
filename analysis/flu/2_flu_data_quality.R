@@ -72,6 +72,13 @@ flu_long <- bind_rows(
   processed_flu_snomed
 )
 
+rm(
+  data_flu_table_raw, 
+  data_flu_drug_raw, 
+  processed_flu_drug, 
+  processed_flu_snomed, 
+  processed_flu_table
+  )
 
 # Source combinations by campaign ----
 flu_sources <- flu_long |>
