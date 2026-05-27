@@ -29,8 +29,16 @@ add_campaign_vars <- function(data) {
       campaign = factor(
         as.character(campaign),
         levels = unique(campaign_info_flu$campaign_label)
+      ),
+      age_date = campaign_info_flu$age_date[
+        match(campaign, campaign_info_flu$campaign_label)
+      ],
+      age = if_else(
+        campaign == "Pre-2018",
+        NA_real_,
+        floor(time_length(interval(birth_date, age_date), "years"))
       )
-      )
+    )
 }
 
 # Process one flu vaccination source:
@@ -43,16 +51,30 @@ process_flu_source <- function(data) {
     lazy_dt() |>
     arrange(patient_id, vax_date) |>
     filter(!is.na(vax_date)) |>
-    count(patient_id, vax_date, age) |>
+    count(patient_id, vax_date, birth_date) |>
     as_tibble() |>
     add_campaign_vars() |>
-    group_by(patient_id, campaign) |>
+    group_by(patient_id, campaign, age) |>
     # Summarise one source at person-campaign level
     summarise(
       !!paste0("n_vax") := n(),
       !!paste0("n_vax_including_exact_duplicates") := sum(n),
       !!paste0("vax_dates_list") := list(sort(unique(vax_date))),
       .groups = "drop"
+    ) |>
+    mutate(
+      ageband4 = cut(
+        age,
+        breaks = c(-Inf, 12, 50, 65, 75, 105, Inf),
+        labels = c("under 12", "12-49", "50-64", "65-74", "75-104", "105+"), # under 12 and 105+ should be excluded in analysis but include here to ensure nobody slipped through the net
+        right = FALSE
+      ) ,
+      # ageband13 = cut(
+      #   age,
+      #   breaks = c(-Inf, 12, 18, 30, 40, 50, 55, 60, 65, 70, 75, 80, 85, 90, 105, Inf),
+      #   labels = c("under 12", "12-17", "18-29", "30-39", "40-49", "50-54", "55-59", "60-64", "65-69", "70-74", "75-79", "80-84", "85-89", "90-104", "105+"), # under 12 and 105+ should be excluded in analysis but include here to ensure nobody slipped through the net
+      #   right = FALSE
+      # )
     ) |>
     arrange(patient_id, campaign)
 }

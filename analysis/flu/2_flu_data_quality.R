@@ -75,8 +75,8 @@ flu_long <- bind_rows(
 
 # Source combinations by campaign ----
 flu_sources <- flu_long |>
-  distinct(patient_id, campaign, source) |>
-  group_by(patient_id, campaign) |>
+  distinct(patient_id, ageband4, campaign, source) |>
+  group_by(patient_id, ageband4, campaign) |>
   summarise(
     table  = "table" %in% source,
     drug   = "drug" %in% source,
@@ -94,15 +94,32 @@ flu_sources <- flu_long |>
   )
 
 # Output 1: Table 1. Source combinations by campaign
-table_flu_sources <- flu_sources |>
+
+table_flu_sources_ageband4 <- flu_sources |>
+  filter(campaign != "Pre-2018") |>
+  group_by(campaign, ageband4, source_combination) |>
+  summarise(
+    n_source = n(),
+    .groups = "drop"
+  )
+
+table_flu_sources_all <- flu_sources |>
   group_by(campaign, source_combination) |>
   summarise(
-    n_source = roundmid_any(n(), sdc_threshold),
+    n_source = n(),
     .groups = "drop"
   ) |>
-  group_by(campaign) |>
+  mutate(ageband4 = "All population") |>
+  select(campaign, ageband4, source_combination, n_source)
+
+table_flu_sources <- bind_rows(
+  table_flu_sources_ageband4,
+  table_flu_sources_all
+  ) |>
+  group_by(campaign, ageband4) |>
   mutate(
-    tot_camp = sum(n_source),
+    tot_camp = roundmid_any(sum(n_source), sdc_threshold),
+    n_source = roundmid_any(n_source, sdc_threshold),
     perc_source = round(n_source / tot_camp * 100, 1),
     n_perc_source = glue("{n_source} ({perc_source}%)")
   ) |>
