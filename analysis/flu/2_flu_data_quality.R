@@ -201,3 +201,36 @@ table_date_agreement <-
   arrange(campaign, comparison)
 
 write_csv(table_date_agreement,here(output_dir, "table_date_agreement.csv"))
+
+# Output 4:  Temporal distribution by source
+table_vax_by_epiweek_source <- flu_long |>
+  filter(campaign != "Pre-2018") |>
+  select(patient_id, source, campaign, vax_dates_list) |>
+  unnest(vax_date = vax_dates_list) |>
+  mutate(
+    epiweek = epiweek(vax_date),
+    epiyear = epiyear(vax_date)
+  ) |>
+  count(
+    epiyear,
+    epiweek,
+    source,
+    campaign,
+    name = "n_vax"
+  ) |>
+  mutate(
+    n_vax = roundmid_any(n_vax, sdc_threshold)
+  )
+write_csv(table_vax_by_date_source,here(output_dir, "table_vax_by_epiweek_source.csv"))
+
+# Output 5: Table SNOMED. Vax by SNOMED codes
+
+snomed_counts_by_campaign <- data_flu_snomed_raw |>
+  filter(!is.na(vax_date)) |>
+  add_campaign_vars() |>
+  count(campaign, vax_snomed, sort = TRUE, name = "n") |>
+  mutate(
+    n_snomed = roundmid_any(n, sdc_threshold)
+  )
+
+write_csv(snomed_counts_by_campaign,here(output_dir, "snomed_counts_by_campaign.csv"))
