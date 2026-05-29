@@ -20,12 +20,9 @@ from ehrql import (
 
 from ehrql.tables.tpp import (
   patients,
-  practice_registrations, 
   medications,
   vaccinations, 
   clinical_events, 
-#   ons_deaths,
-#   addresses,
 )
 # import codelists
 from analysis import codelists
