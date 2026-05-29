@@ -106,14 +106,14 @@ table_flu_sources_ageband4 <- flu_sources |>
   filter(campaign != "Pre-2018") |>
   group_by(campaign, ageband4, source_combination) |>
   summarise(
-    n_source = n(),
+    n_source_midpoint10 = n(),
     .groups = "drop"
   )
 
 table_flu_sources_all <- flu_sources |>
   group_by(campaign, source_combination) |>
   summarise(
-    n_source = n(),
+    n_source_midpoint10 = n(),
     .groups = "drop"
   ) |>
   mutate(ageband4 = "All population") |>
@@ -125,8 +125,8 @@ table_flu_sources <- bind_rows(
   ) |>
   group_by(campaign, ageband4) |>
   mutate(
-    tot_camp = roundmid_any(sum(n_source), sdc_threshold),
-    n_source = roundmid_any(n_source, sdc_threshold),
+    tot_camp_midpoint10 = roundmid_any(sum(n_source), sdc_threshold),
+    n_source_midpoint10 = roundmid_any(n_source, sdc_threshold),
     perc_source = round(n_source / tot_camp * 100, 1),
     n_perc_source = glue("{n_source} ({perc_source}%)")
   ) |>
@@ -144,7 +144,7 @@ write_csv(
 upset_counts_campaign <- flu_sources |>
   group_by(campaign, table, drug, snomed) |>
   summarise(
-    n = roundmid_any(n(), sdc_threshold),
+    n_midpoint10 = roundmid_any(n(), sdc_threshold),
     .groups = "drop"
   )
 
@@ -223,10 +223,10 @@ table_vax_by_epiweek_source <- flu_long |>
     epiweek,
     source,
     campaign,
-    name = "n_vax"
+    name = "n_vax_midpoint10"
   ) |>
   mutate(
-    n_vax = roundmid_any(n_vax, sdc_threshold)
+    n_vax_midpoint10 = roundmid_any(n_vax, sdc_threshold)
   )
 write_csv(table_vax_by_epiweek_source,here(output_dir, "table_vax_by_epiweek_source.csv"))
 
@@ -235,9 +235,9 @@ write_csv(table_vax_by_epiweek_source,here(output_dir, "table_vax_by_epiweek_sou
 snomed_counts_by_campaign <- data_flu_snomed_raw |>
   filter(!is.na(vax_date)) |>
   add_campaign_vars() |>
-  count(campaign, vax_snomed, sort = TRUE, name = "n") |>
+  count(campaign, vax_snomed, sort = TRUE, name = "n_snomed_midpoint10") |>
   mutate(
-    n_snomed = roundmid_any(n, sdc_threshold)
+    n_snomed_midpoint10 = roundmid_any(n_midpoint10, sdc_threshold)
   )
 
 write_csv(snomed_counts_by_campaign,here(output_dir, "snomed_counts_by_campaign.csv"))
