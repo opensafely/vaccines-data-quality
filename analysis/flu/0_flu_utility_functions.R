@@ -102,8 +102,8 @@ summarise_date_agreement <- function(data, match_var, comparison_label) {
     group_by(campaign) |>
     summarise(
       comparison = comparison_label,
-      n = roundmid_any(sum({{ match_var }}, na.rm = TRUE), sdc_threshold),
-      denom = roundmid_any(sum(!is.na({{ match_var }})), sdc_threshold),
+      n_midpoint10 = roundmid_any(sum({{ match_var }}, na.rm = TRUE), sdc_threshold),
+      denom_midpoint10 = roundmid_any(sum(!is.na({{ match_var }})), sdc_threshold),
       .groups = "drop"
     )
 }
