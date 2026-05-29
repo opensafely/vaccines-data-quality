@@ -117,7 +117,7 @@ table_flu_sources_all <- flu_sources |>
     .groups = "drop"
   ) |>
   mutate(ageband4 = "All population") |>
-  select(campaign, ageband4, source_combination, n_source)
+  select(campaign, ageband4, source_combination, n_source_midpoint10)
 
 table_flu_sources <- bind_rows(
   table_flu_sources_ageband4,
@@ -125,10 +125,10 @@ table_flu_sources <- bind_rows(
   ) |>
   group_by(campaign, ageband4) |>
   mutate(
-    tot_camp_midpoint10 = roundmid_any(sum(n_source), sdc_threshold),
-    n_source_midpoint10 = roundmid_any(n_source, sdc_threshold),
-    perc_source = round(n_source / tot_camp * 100, 1),
-    n_perc_source = glue("{n_source} ({perc_source}%)")
+    tot_camp_midpoint10 = roundmid_any(sum(n_source_midpoint10), sdc_threshold),
+    n_source_midpoint10 = roundmid_any(n_source_midpoint10, sdc_threshold),
+    perc_source = round(n_source_midpoint10 / tot_camp_midpoint10 * 100, 1),
+    n_perc_source = glue("{n_source_midpoint10} ({perc_source}%)")
   ) |>
   ungroup() |>
   arrange(campaign, source_combination)
@@ -202,8 +202,8 @@ table_date_agreement <-
     )
   ) |>
   mutate(
-    pct = 100 * n / denom,
-    n_pct = glue("{n} / {denom} ({round(pct, 1)}%)")
+    pct = 100 * n_midpoint10 / denom_midpoint10,
+    n_pct = glue("{n_midpoint10} / {denom_midpoint10} ({round(pct, 1)}%)")
   ) |>
   arrange(campaign, comparison)
 
@@ -226,7 +226,7 @@ table_vax_by_epiweek_source <- flu_long |>
     name = "n_vax_midpoint10"
   ) |>
   mutate(
-    n_vax_midpoint10 = roundmid_any(n_vax, sdc_threshold)
+    n_vax_midpoint10 = roundmid_any(n_vax_midpoint10, sdc_threshold)
   )
 write_csv(table_vax_by_epiweek_source,here(output_dir, "table_vax_by_epiweek_source.csv"))
 
@@ -237,7 +237,7 @@ snomed_counts_by_campaign <- data_flu_snomed_raw |>
   add_campaign_vars() |>
   count(campaign, vax_snomed, sort = TRUE, name = "n_snomed_midpoint10") |>
   mutate(
-    n_snomed_midpoint10 = roundmid_any(n_midpoint10, sdc_threshold)
+    n_snomed_midpoint10 = roundmid_any(n_snomed_midpoint10, sdc_threshold)
   )
 
 write_csv(snomed_counts_by_campaign,here(output_dir, "snomed_counts_by_campaign.csv"))
