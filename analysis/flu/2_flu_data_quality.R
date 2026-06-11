@@ -72,11 +72,18 @@ flu_long <- bind_rows(
   processed_flu_snomed
 )
 
+rm(
+  data_flu_table_raw, 
+  data_flu_drug_raw, 
+  processed_flu_drug, 
+  processed_flu_snomed, 
+  processed_flu_table
+  )
 
 # Source combinations by campaign ----
 flu_sources <- flu_long |>
-  distinct(patient_id, campaign, source) |>
-  group_by(patient_id, campaign) |>
+  distinct(patient_id, ageband4, campaign, source) |>
+  group_by(patient_id, ageband4, campaign) |>
   summarise(
     table  = "table" %in% source,
     drug   = "drug" %in% source,
@@ -94,17 +101,34 @@ flu_sources <- flu_long |>
   )
 
 # Output 1: Table 1. Source combinations by campaign
-table_flu_sources <- flu_sources |>
+
+table_flu_sources_ageband4 <- flu_sources |>
+  filter(campaign != "Pre-2018") |>
+  group_by(campaign, ageband4, source_combination) |>
+  summarise(
+    n_source_midpoint10 = n(),
+    .groups = "drop"
+  )
+
+table_flu_sources_all <- flu_sources |>
   group_by(campaign, source_combination) |>
   summarise(
-    n_source = roundmid_any(n(), sdc_threshold),
+    n_source_midpoint10 = n(),
     .groups = "drop"
   ) |>
-  group_by(campaign) |>
+  mutate(ageband4 = "All population") |>
+  select(campaign, ageband4, source_combination, n_source_midpoint10)
+
+table_flu_sources <- bind_rows(
+  table_flu_sources_ageband4,
+  table_flu_sources_all
+  ) |>
+  group_by(campaign, ageband4) |>
   mutate(
-    tot_camp = sum(n_source),
-    perc_source = round(n_source / tot_camp * 100, 1),
-    n_perc_source = glue("{n_source} ({perc_source}%)")
+    tot_camp_midpoint10 = roundmid_any(sum(n_source_midpoint10), sdc_threshold),
+    n_source_midpoint10 = roundmid_any(n_source_midpoint10, sdc_threshold),
+    perc_source = round(n_source_midpoint10 / tot_camp_midpoint10 * 100, 1),
+    n_perc_source = glue("{n_source_midpoint10} ({perc_source}%)")
   ) |>
   ungroup() |>
   arrange(campaign, source_combination)
@@ -120,7 +144,7 @@ write_csv(
 upset_counts_campaign <- flu_sources |>
   group_by(campaign, table, drug, snomed) |>
   summarise(
-    n = roundmid_any(n(), sdc_threshold),
+    n_midpoint10 = roundmid_any(n(), sdc_threshold),
     .groups = "drop"
   )
 
@@ -178,9 +202,42 @@ table_date_agreement <-
     )
   ) |>
   mutate(
-    pct = 100 * n / denom,
-    n_pct = glue("{n} / {denom} ({round(pct, 1)}%)")
+    pct = 100 * n_midpoint10 / denom_midpoint10,
+    n_pct = glue("{n_midpoint10} / {denom_midpoint10} ({round(pct, 1)}%)")
   ) |>
   arrange(campaign, comparison)
 
 write_csv(table_date_agreement,here(output_dir, "table_date_agreement.csv"))
+
+# Output 4:  Temporal distribution by source
+table_vax_by_epiweek_source <- flu_long |>
+  filter(campaign != "Pre-2018") |>
+  select(patient_id, source, campaign, vax_dates_list) |>
+  unnest(vax_date = vax_dates_list) |>
+  mutate(
+    epiweek = epiweek(vax_date),
+    epiyear = epiyear(vax_date)
+  ) |>
+  count(
+    epiyear,
+    epiweek,
+    source,
+    campaign,
+    name = "n_vax_midpoint10"
+  ) |>
+  mutate(
+    n_vax_midpoint10 = roundmid_any(n_vax_midpoint10, sdc_threshold)
+  )
+write_csv(table_vax_by_epiweek_source,here(output_dir, "table_vax_by_epiweek_source.csv"))
+
+# Output 5: Table SNOMED. Vax by SNOMED codes
+
+snomed_counts_by_campaign <- data_flu_snomed_raw |>
+  filter(!is.na(vax_date)) |>
+  add_campaign_vars() |>
+  count(campaign, vax_snomed, sort = TRUE, name = "n_snomed_midpoint10") |>
+  mutate(
+    n_snomed_midpoint10 = roundmid_any(n_snomed_midpoint10, sdc_threshold)
+  )
+
+write_csv(snomed_counts_by_campaign,here(output_dir, "snomed_counts_by_campaign.csv"))

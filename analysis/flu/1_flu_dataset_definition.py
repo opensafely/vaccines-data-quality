@@ -20,12 +20,9 @@ from ehrql import (
 
 from ehrql.tables.tpp import (
   patients,
-  practice_registrations, 
   medications,
   vaccinations, 
   clinical_events, 
-#   ons_deaths,
-#   addresses,
 )
 # import codelists
 from analysis import codelists
@@ -82,19 +79,19 @@ dataset.add_event_table(
     "flu_vaccinations_table",
     vax_date = flu_vaccinations_table.date,
     vax_product = flu_vaccinations_table.product_name,
-    age = patients.age_on(flu_vaccinations_table.date),
+    birth_date = patients.date_of_birth,
 )
 
 dataset.add_event_table(
     "flu_vaccinations_SNOMED",
     vax_date = flu_vaccinations_SNOMED.date,
-#    vax_snomed = flu_vaccinations_SNOMED.product_name,
-    age = patients.age_on(flu_vaccinations_SNOMED.date),
+    vax_snomed = flu_vaccinations_SNOMED.snomedct_code,
+    birth_date = patients.date_of_birth,
 )
 
 dataset.add_event_table(
     "flu_vaccinations_drug",
     vax_date = flu_vaccinations_drug.date,
 #    vax_drug = flu_vaccinations_drug.product_name,
-    age = patients.age_on(flu_vaccinations_drug.date),
+    birth_date = patients.date_of_birth,
 )
