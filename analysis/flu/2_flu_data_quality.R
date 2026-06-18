@@ -231,13 +231,46 @@ table_vax_by_epiweek_source <- flu_long |>
 write_csv(table_vax_by_epiweek_source,here(output_dir, "table_vax_by_epiweek_source.csv"))
 
 # Output 5: Table SNOMED. Vax by SNOMED codes
+flu_sources <- flu_sources |>
+  filter(snomed) |>
+  select(patient_id, campaign, source_combination)
 
 snomed_counts_by_campaign <- data_flu_snomed_raw |>
   filter(!is.na(vax_date)) |>
   add_campaign_vars() |>
-  count(campaign, vax_snomed, sort = TRUE, name = "n_snomed_midpoint10") |>
+  left_join(
+    flu_sources,
+    by = c("patient_id", "campaign")
+  ) |>
+  count(
+    campaign,
+    vax_snomed,
+    source_combination,
+    sort = TRUE,
+    name = "n_snomed_midpoint10"
+  ) |>
+  group_by(campaign, source_combination) |>
   mutate(
-    n_snomed_midpoint10 = roundmid_any(n_snomed_midpoint10, sdc_threshold)
+    n_source_combination_midpoint10 = sum(n_snomed_midpoint10),
+    n_snomed_midpoint10 = roundmid_any(
+      n_snomed_midpoint10,
+      sdc_threshold
+    ),
+    n_source_combination_midpoint10 = roundmid_any(
+      n_source_combination_midpoint10,
+      sdc_threshold
+    ),
+    perc = round(
+      100 * n_snomed_midpoint10 /
+        n_source_combination_midpoint10,
+      1
+    )
+  ) |>
+  ungroup() |>
+  arrange(
+    campaign,
+    source_combination,
+    desc(perc)
   )
 
 write_csv(snomed_counts_by_campaign,here(output_dir, "snomed_counts_by_campaign.csv"))
