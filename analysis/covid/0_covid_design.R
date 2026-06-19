@@ -19,7 +19,9 @@ study_dates <-
   list(
     firstpossiblevax_date = "2020-04-23",
     start_date = "2020-12-08",
-    end_date = "2026-12-31"
+    end_date = "2026-04-12" 
+    # Spring 2026: 13 April 2026 - 30 June 2026
+    #https://www.england.nhs.uk/long-read/2026-27-covid-adult-influenza-vaccination-service-specification-general-practice/
   ) |>
   lapply(as.Date)
 
@@ -50,8 +52,8 @@ campaign_info <-
   mutate(
     across(c(campaign_start_date, primary_milestone_date, age_date), as.Date),
     early_milestone_date = campaign_start_date + (7 * 8) - 1, # end of eighth week after campaign_start_date
-    final_milestone_date = lead(campaign_start_date, 1, as.Date("2030-01-01")) -
-      1 # day before next campaign date (or some arbitrary future date if last campaign)
+    final_milestone_date = lead(campaign_start_date, 1, study_dates$end_date + 1) -
+      1 # day before next campaign start date, or study end date for the final campaign
   ) |>
   mutate(
     early_milestone_days = as.integer(
