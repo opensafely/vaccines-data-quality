@@ -98,21 +98,26 @@ data_vax_ELD <-
 
 
 
-# ---- 3.2 Product approval flags ----
+# ---- 3.2 Non-routine product flags ----
+
+routine_lookup_df <-
+  enframe(campaign_product_lookup, name = "campaign", value = "routine_products") |>
+  unnest_longer(routine_products, values_to = "routine_product")
+
 data_vax_ELD <-
   data_vax_ELD |>
   mutate(
-    product_chr   = as.character(vax_product),
-    approval_date = as.Date(approval_lookup[product_chr]),
-
-    # A: product not found in the approval lookup table
-    flag_unapproved_product = !(product_chr %in% names(approval_lookup)),
-
-    # B: product recorded before approval (only if recognised)
-    flag_product_before_approval = case_when(
-      flag_unapproved_product ~ NA,
-      TRUE ~ vax_date < approval_date
-    )) |>
+    product_chr = as.character(vax_product)
+  ) |>
+  left_join(
+    routine_lookup_df |>
+      mutate(flag_routine_product = TRUE),
+    by = c("campaign", "product_chr" = "routine_product")
+  ) |>
+  mutate(
+    flag_routine_product = coalesce(flag_routine_product, FALSE),
+    flag_non_routine_product = !flag_routine_product
+  ) |>
   as_tibble()
 
 
@@ -257,8 +262,7 @@ flag_long_noninterval <-
     patient_id, vax_date, campaign, vax_product,
     flag_implausible_early_date,
     flag_pre_rollout_date,
-    flag_unapproved_product,
-    flag_product_before_approval,
+    flag_non_routine_product,
     flag_same_day_same_product,
     flag_same_day_mixed_product
   ) |>

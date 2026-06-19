@@ -99,7 +99,7 @@ vax_product_lookup <- c(
 
   # Astrazeneca
   "az_original" = "COVID-19 Vaccine Vaxzevria 0.5ml inj multidose vials (AstraZeneca)",
-  "az_original_half" = "COVID-19 Vac AZD2816 (ChAdOx1 nCOV-19) 3.5x10*9 viral part/0.5ml dose sol for inj MDV (AstraZeneca)",
+  "az_beta" = "COVID-19 Vac AZD2816 (ChAdOx1 nCOV-19) 3.5x10*9 viral part/0.5ml dose sol for inj MDV (AstraZeneca)",
 
   # Moderna
   "moderna_original" = "COVID-19 mRNA Vaccine Spikevax (nucleoside modified) 0.1mg/0.5mL dose disp for inj MDV (Moderna)",
@@ -127,7 +127,7 @@ vax_product_lookup <- c(
   "sputnik_ii_inj" = "COVID-19 Vaccine Sputnik V Component II 0.5ml inj vials",
 
   # Janssen
-  "jansenn" = "COVID-19 Vaccine Janssen (Ad26.COV2-S (recomb)) 0.5ml dose solution for injection multidose vials",
+  "janssen" = "COVID-19 Vaccine Janssen (Ad26.COV2-S (recomb)) 0.5ml dose solution for injection multidose vials",
 
   # Sinopharm
   "sinopharm" = "COVID-19 Vac Sinopharm BIBP (inactivated adjuvanted) 6.5U/0.5ml dose susp for inj vials",
@@ -157,68 +157,6 @@ vax_product_lookup <- c(
   "unspecified" = "SARS-2 Coronavirus vaccine"
 )
 
-# lookup to rename coding-friendly product names to publication-friendly product names
-vax_product_core_levels <- c(
-  "pfizer_original",
-  "pfizer_BA1",
-  "pfizer_BA45",
-  "pfizer_XBB15",
-  "pfizer_JN1",
-  "pfizer_LP81",
-  "pfizer_KP2",
-  "pfizer_original_children",
-  "az_original",
-  "az_original_half",
-  "moderna_original",
-  "moderna_omicron",
-  "moderna_BA45",
-  "moderna_XBB15",
-  "moderna_JN1",
-  "moderna_omicron2",
-  "moderna_LP81",
-  "sanofigsk_B1",
-  "novavax",
-  "novavax_JN1",
-  "jansenn",
-  "coronavac",
-  "covishield"
-)
-
-# Approval dates come mainly from Table 2 of the ECHO protocol.
-# Additional products found in vax_product_lookup were checked against
-# official regulatory sources; these supplementary entries are provisional
-# and pending confirmation.
-approval_lookup <- c(
-  pfizer_original = "2020-12-02",
-  pfizer_BA1 = "2022-09-03", #"2022-09-01"?
-  pfizer_BA45 = "2022-09-11", #"2022-09-12"?
-  pfizer_XBB15 = "2023-09-05",
-  pfizer_JN1 = "2024-07-24",
-  pfizer_KP2 = "2024-10-10",
-  pfizer_KP2_pfs = "2024-10-10",
-  #pfizer_unspecified = "2020-12-02",
-  #pfizer_original_children = "2021-12-22",
-  #pfizer_JN1_children = "2024-07-24",
-  #pfizer_XBB15_children = "2023-09-05",
-  #pfizer_LP81_children = "2025-08-01",
-  #pfizer_original_under5 = "2022-12-06",
-  #pfizer_JN1_under5 = "2024-07-24",
-  #pfizer_XBB15_under5 = "2023-09-05",
-  #pfizer_LP81_under5 = "2025-08-01",
-  az_original = "2020-12-30",
-  moderna_original = "2021-01-08",
-  moderna_omicron = "2022-08-15", #"2022-08-12"?
-  moderna_BA45 = "2023-02-21",
-  moderna_XBB15 = "2023-09-15",
-  moderna_JN1 = "2024-09-02",
-  #moderna_unspecified = "2021-01-08",
-  sanofigsk_B1 = "2022-12-21"
-  #novavax = "2022-02-03",
-  #novavax_JN1 = "2024-11-13"
-  #jansenn = "2021-05-28",
-  #valneva = "2022-04-14"
-)
-
 # Approval dates come mainly from Table 3 of the ECHO protocol.
 campaign_product_lookup <- list(
 
@@ -230,17 +168,21 @@ campaign_product_lookup <- list(
 
   "Autumn 2021" = c(
     "pfizer_original",   # BNT162b2
+    "pfizer_original_children", #approval time: 2021-12-22 
     "moderna_original",  # mRNA-1273
     "az_original"        # ChAdOx1-S
   ),
 
   "Spring 2022" = c(
     "pfizer_original",   # BNT162b2
+    "pfizer_original_children", #approval time: 2021-12-22
     "moderna_original"   # mRNA-1273
   ),
 
   "Autumn 2022" = c(
     "pfizer_original",   # BNT162b2
+    "pfizer_original_children", #approval time: 2021-12-22
+    "pfizer_original_under5", #approval time: 2022-12-06 
     "moderna_original",  # mRNA-1273
     "pfizer_BA1",        # BNT162b2/BA.1
     "moderna_omicron"    # mRNA-1273/BA.1
@@ -254,6 +196,8 @@ campaign_product_lookup <- list(
 
   "Autumn 2023" = c(
     "pfizer_BA45",       # BNT162b2/BA.4-5
+    "pfizer_XBB15_children", #approval time: 2023-09-05 
+    "pfizer_XBB15_under5", #approval time: 2023-09-05 
     "moderna_BA45",      # mRNA-1273/BA.4-5
     "pfizer_XBB15",      # BNT162b2.XBB.1.5
     "moderna_XBB15",     # mRNA-1273.XBB.1.5
@@ -262,24 +206,74 @@ campaign_product_lookup <- list(
 
   "Spring 2024" = c(
     "pfizer_XBB15",      # BNT162b2.XBB.1.5
+    "pfizer_XBB15_children", #approval time: 2023-09-05 
+    "pfizer_XBB15_under5", #approval time: 2023-09-05 
     "moderna_XBB15"      # mRNA-1273.XBB.1.5
   ),
 
   "Autumn 2024" = c(
     "pfizer_JN1",        # BNT162b2.JN.1
+    "pfizer_JN1_children", #approval time: 2024-07-24 
+    "pfizer_JN1_under5", #approval time: 2024-07-24
     "moderna_JN1"        # mRNA-1273.JN.1
   ),
 
   "Spring 2025" = c(
     "pfizer_JN1",        # BNT162b2.JN.1
+    "pfizer_JN1_children", #approval time: 2024-07-24
+    "pfizer_JN1_under5", #approval time: 2024-07-24
     "moderna_JN1"        # mRNA-1273.JN.1
   ),
 
   "Autumn 2025" = c(
+    "moderna_LP81",
+    "pfizer_LP81",
+    "pfizer_LP81_children",
+    "pfizer_LP81_under5",
+    "novavax_JN1",
     "pfizer_KP2",        # BNT162b2.KP.2
     "pfizer_KP2_pfs"     # BNT162b2.KP.2
   )
 )
+
+
+# Corresponding approval dates 
+# for UK-approved products in vax_product_lookup 
+# (not all routine)
+
+approval_lookup <- c(
+  pfizer_original = "2020-12-02",
+  pfizer_BA1 = "2022-09-03", 
+  pfizer_BA45 = "2022-11-09", 
+  pfizer_XBB15 = "2023-09-05",
+  pfizer_JN1 = "2024-07-24",
+  pfizer_LP81 = "2025-08-12",
+  pfizer_KP2 = "2024-10-10",
+  pfizer_KP2_pfs = "2024-10-10",
+  # pfizer_unspecified = ?,
+  pfizer_original_children = "2021-12-22",
+  pfizer_JN1_children = "2024-07-24",
+  pfizer_XBB15_children = "2023-09-05",
+  pfizer_LP81_children = "2025-08-12",
+  pfizer_original_under5 = "2022-12-06",
+  pfizer_JN1_under5 = "2024-07-24",
+  pfizer_XBB15_under5 = "2023-09-05",
+  pfizer_LP81_under5 = "2025-08-12",
+  az_original = "2020-12-30",
+  moderna_original = "2021-01-08",
+  moderna_omicron = "2022-08-15", 
+  moderna_BA45 = "2023-02-21",
+  moderna_XBB15 = "2023-09-15",
+  moderna_JN1 = "2024-09-02",
+  moderna_LP81 = "2026-02-10",
+  # moderna_unspecified = ?,
+  sanofigsk_B1 = "2022-12-21",
+  novavax = "2022-02-03",
+  novavax_JN1 = "2024-11-15",
+  janssen = "2021-05-28",
+  valneva = "2022-04-13"
+)
+
 
 
 # relabel_from_lookup <- function(x, from, to, source){
