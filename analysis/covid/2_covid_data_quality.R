@@ -402,7 +402,7 @@ write_csv(
 table_interval_context_unrounded <-
   make_interval_table(
     data = data_vax_interval,
-    group_var = "interval_context",
+    group_vars = "interval_context",
     round = FALSE
   ) |>
   arrange(interval_context, interval_bin)
@@ -410,7 +410,7 @@ table_interval_context_unrounded <-
 table_interval_context_rounded <-
   make_interval_table(
     data = data_vax_interval,
-    group_var = "interval_context",
+    group_vars = "interval_context",
     round = TRUE,
     sdc_threshold = sdc_threshold
   ) |>
@@ -426,44 +426,40 @@ write_csv(
   fs::path(output_dir, "count_interval_context.csv")
 )
 
+# ---- Table 4: campaign transition x product transition x interval bin ----
 
-# ---- Table 4: campaign x interval bin ----
-# Current campaign = campaign of the current vaccination event.
-# This shows the interval distribution within each campaign.
-
-table_interval_campaign_unrounded <-
+table_interval_campaign_product_transition_unrounded <-
   make_interval_table(
     data = data_vax_interval,
-    group_var = "campaign",
+    group_vars = c("campaign_transition_type", "product_transition_type"),
     round = FALSE
   ) |>
-  arrange(campaign, interval_bin)
+  arrange(campaign_transition_type, product_transition_type, interval_bin)
 
-table_interval_campaign_rounded <-
+table_interval_campaign_product_transition_rounded <-
   make_interval_table(
     data = data_vax_interval,
-    group_var = "campaign",
+    group_vars = c("campaign_transition_type", "product_transition_type"),
     round = TRUE,
     sdc_threshold = sdc_threshold
   ) |>
-  arrange(campaign, interval_bin)
+  arrange(campaign_transition_type, product_transition_type, interval_bin)
 
 write_csv(
-  table_interval_campaign_unrounded,
-  fs::path(output_dir, "count_interval_campaign_unrounded.csv")
+  table_interval_campaign_product_transition_unrounded,
+  fs::path(output_dir, "count_interval_campaign_product_transition_unrounded.csv")
 )
 
 write_csv(
-  table_interval_campaign_rounded,
-  fs::path(output_dir, "count_interval_campaign.csv")
+  table_interval_campaign_product_transition_rounded,
+  fs::path(output_dir, "count_interval_campaign_product_transition.csv")
 )
-
 
 # ---- Table 5: campaign transition type x interval bin ----
 table_interval_campaign_transition_unrounded <-
   make_interval_table(
     data = data_vax_interval,
-    group_var = "campaign_transition_type",
+    group_vars = "campaign_transition_type",
     round = FALSE
   ) |>
   arrange(campaign_transition_type, interval_bin)
@@ -471,7 +467,7 @@ table_interval_campaign_transition_unrounded <-
 table_interval_campaign_transition_rounded <-
   make_interval_table(
     data = data_vax_interval,
-    group_var = "campaign_transition_type",
+    group_vars = "campaign_transition_type",
     round = TRUE,
     sdc_threshold = sdc_threshold
   ) |>
@@ -492,7 +488,7 @@ write_csv(
 table_interval_product_transition_unrounded <-
   make_interval_table(
     data = data_vax_interval,
-    group_var = "product_transition_type",
+    group_vars = "product_transition_type",
     round = FALSE
   ) |>
   arrange(product_transition_type, interval_bin)
@@ -500,7 +496,7 @@ table_interval_product_transition_unrounded <-
 table_interval_product_transition_rounded <-
   make_interval_table(
     data = data_vax_interval,
-    group_var = "product_transition_type",
+    group_vars = "product_transition_type",
     round = TRUE,
     sdc_threshold = sdc_threshold
   ) |>

@@ -223,15 +223,13 @@ make_summary_table_vaccination_date_specific_active <- function(
 }
 
 
-# ---- helper C: interval table with group and total denominators ----
-make_interval_table <- function(data, group_var, round = FALSE, sdc_threshold = NULL) {
+# ---- helper D: interval table with group and total denominators ----
+make_interval_table <- function(data, group_vars, round = FALSE, sdc_threshold = NULL) {
 
-  # function to optionally round values
   round_fun <- function(x) {
     if (round) roundmid_any(x, sdc_threshold) else x
   }
 
-  # choose column suffix
   suffix <- if (round) "_midpoint10" else ""
 
   denom_records_total <- round_fun(nrow(data))
@@ -239,31 +237,30 @@ make_interval_table <- function(data, group_var, round = FALSE, sdc_threshold = 
 
   summary_df <-
     data |>
-    dplyr::group_by(dplyr::across(all_of(c(group_var, "interval_bin")))) |>
+    dplyr::group_by(dplyr::across(all_of(c(group_vars, "interval_bin")))) |>
     dplyr::summarise(
-      n_records = round_fun(n()),
+      n_records = round_fun(dplyr::n()),
       n_patients = round_fun(dplyr::n_distinct(patient_id)),
       .groups = "drop"
     )
 
   denom_df_group <-
     data |>
-    dplyr::group_by(dplyr::across(all_of(group_var))) |>
+    dplyr::group_by(dplyr::across(all_of(group_vars))) |>
     dplyr::summarise(
-      denom_records_group = round_fun(n()),
+      denom_records_group = round_fun(dplyr::n()),
       denom_patients_group = round_fun(dplyr::n_distinct(patient_id)),
       .groups = "drop"
     )
 
   out <-
     summary_df |>
-    dplyr::left_join(denom_df_group, by = group_var) |>
+    dplyr::left_join(denom_df_group, by = group_vars) |>
     dplyr::mutate(
       denom_records_total = denom_records_total,
       denom_patients_total = denom_patients_total
     )
 
-  # apply suffix if rounding
   if (round) {
     names(out) <- gsub(
       "(n_records|n_patients|denom_records_group|denom_patients_group|denom_records_total|denom_patients_total)$",
@@ -273,8 +270,9 @@ make_interval_table <- function(data, group_var, round = FALSE, sdc_threshold = 
   }
 
   out |>
-    dplyr::select(all_of(group_var), interval_bin, dplyr::everything())
+    dplyr::select(all_of(group_vars), interval_bin, dplyr::everything())
 }
+
 
 # 3. Dummy data functions (for testing only) ----
 
