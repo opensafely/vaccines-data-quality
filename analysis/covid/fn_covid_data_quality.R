@@ -20,7 +20,47 @@ roundmid_any <- function(x, to = 1) {
 
 # 2. Summary table functions ----
 
-# ---- helper A: summary table with total denominator only ----
+# ---- helper A: record-level flag count summary ----
+make_record_flag_count_table <- function(data, flag_vars, round = FALSE, sdc_threshold = NULL) {
+
+  round_fun <- function(x) {
+    if (round) roundmid_any(x, sdc_threshold) else x
+  }
+
+  suffix <- if (round) "_midpoint10" else ""
+
+  out <-
+    data |>
+    dplyr::mutate(
+      flag_count = rowSums(
+        dplyr::across(
+          dplyr::all_of(flag_vars),
+          ~ tidyr::replace_na(as.logical(.x), FALSE)
+        )
+      )
+    ) |>
+    dplyr::count(flag_count, name = "n_records") |>
+    dplyr::mutate(
+      denom_records_total = sum(n_records)
+    ) |>
+    dplyr::arrange(flag_count) |>
+    dplyr::mutate(
+      n_records = round_fun(n_records),
+      denom_records_total = round_fun(denom_records_total)
+    )
+
+  if (round) {
+    names(out) <- gsub(
+      "(n_records|denom_records_total)$",
+      paste0("\\1", suffix),
+      names(out)
+    )
+  }
+
+  out
+}
+
+# ---- helper B: summary table with total denominator only ----
 make_summary_table_total <- function(data, group_vars, denom_data, round = FALSE, sdc_threshold = NULL) {
 
   # function to optionally round values
@@ -61,7 +101,7 @@ make_summary_table_total <- function(data, group_vars, denom_data, round = FALSE
 }
 
 
-# ---- helper B: campaign summary with vaccination-date-specific active denominators ----
+# ---- helper C: campaign summary with vaccination-date-specific active denominators ----
 make_summary_table_vaccination_date_specific_active <- function(
   flag_data,
   event_data,

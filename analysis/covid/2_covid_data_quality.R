@@ -282,6 +282,42 @@ flag_long_noninterval <-
 # 2 version: unrounded + rounded
 # we can look on L4 to see if rounding has introduced any issues
 
+# ---- Table 0: Number of non-interval flags per vaccination record ----
+
+noninterval_flag_vars <- c(
+  "flag_implausible_early_date",
+  "flag_pre_rollout_date",
+  "flag_non_routine_product",
+  "flag_same_day_same_product",
+  "flag_same_day_mixed_product"
+)
+
+table_record_flag_count_unrounded <-
+  make_record_flag_count_table(
+    data = data_vax_ELD,
+    flag_vars = noninterval_flag_vars,
+    round = FALSE
+  )
+
+table_record_flag_count_rounded <-
+  make_record_flag_count_table(
+    data = data_vax_ELD,
+    flag_vars = noninterval_flag_vars,
+    round = TRUE,
+    sdc_threshold = sdc_threshold
+  )
+
+write_csv(
+  table_record_flag_count_unrounded,
+  fs::path(output_dir, "count_record_flag_count_unrounded.csv")
+)
+
+write_csv(
+  table_record_flag_count_rounded,
+  fs::path(output_dir, "count_record_flag_count.csv")
+)
+
+
 # ---- Table 1: Overall summary of non-interval flags ----
 table_overall_noninterval_flags_unrounded <-
   make_summary_table_total(
