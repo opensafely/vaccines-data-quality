@@ -530,11 +530,11 @@ mixed_products_cooccurrence_flat <-
 
 count_mixed_products_cooccurrence_unrounded <-
   mixed_products_cooccurrence_flat |>
-  group_by(vax_product) |>
-  summarise(
-    count_total = n(),
-    .groups = "drop"
-  ) |>
+  count(
+    vax_date,
+    vax_product,
+    name = "count_total"
+    ) |>
   arrange(desc(count_total)) |>
   as_tibble()
 
