@@ -18,14 +18,18 @@ roundmid_any <- function(x, to = 1) {
   }
 }
 
+make_round_fun <- function(round, sdc_threshold) {
+  function(x) {
+    if (round) roundmid_any(x, sdc_threshold) else x
+  }
+}
+
 # 2. Summary table functions ----
 
 # ---- helper A: record-level flag count summary ----
 make_record_flag_count_table <- function(data, flag_vars, round = FALSE, sdc_threshold = NULL) {
 
-  round_fun <- function(x) {
-    if (round) roundmid_any(x, sdc_threshold) else x
-  }
+  round_fun <- make_round_fun(round, sdc_threshold)
 
   suffix <- if (round) "_midpoint10" else ""
 
@@ -64,9 +68,7 @@ make_record_flag_count_table <- function(data, flag_vars, round = FALSE, sdc_thr
 make_summary_table_total <- function(data, group_vars, denom_data, round = FALSE, sdc_threshold = NULL) {
 
   # function to optionally round values
-  round_fun <- function(x) {
-    if (round) roundmid_any(x, sdc_threshold) else x
-  }
+  round_fun <- make_round_fun(round, sdc_threshold)
 
   # choose column suffix
   suffix <- if (round) "_midpoint10" else ""
@@ -112,9 +114,7 @@ make_summary_table_vaccination_date_specific_active <- function(
 ) {
 
   # function to optionally round values
-  round_fun <- function(x) {
-    if (round) roundmid_any(x, sdc_threshold) else x
-  }
+  round_fun <- make_round_fun(round, sdc_threshold)
 
   # choose column suffix
   suffix <- if (round) "_midpoint10" else ""
@@ -226,9 +226,7 @@ make_summary_table_vaccination_date_specific_active <- function(
 # ---- helper D: interval table with group and total denominators ----
 make_interval_table <- function(data, group_vars, round = FALSE, sdc_threshold = NULL) {
 
-  round_fun <- function(x) {
-    if (round) roundmid_any(x, sdc_threshold) else x
-  }
+  round_fun <- make_round_fun(round, sdc_threshold)
 
   suffix <- if (round) "_midpoint10" else ""
 
