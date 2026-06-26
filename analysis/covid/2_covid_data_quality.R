@@ -295,16 +295,14 @@ noninterval_flag_vars <- c(
 table_record_flag_count_unrounded <-
   make_record_flag_count_table(
     data = data_vax_ELD,
-    flag_vars = noninterval_flag_vars,
-    round = FALSE
+    flag_vars = noninterval_flag_vars
   )
 
 table_record_flag_count_rounded <-
-  make_record_flag_count_table(
-    data = data_vax_ELD,
-    flag_vars = noninterval_flag_vars,
-    round = TRUE,
-    sdc_threshold = sdc_threshold
+  table_record_flag_count_unrounded |>
+  dplyr::mutate(
+    n_records = roundmid_any(n_records, sdc_threshold),
+    denom_records_total = roundmid_any(denom_records_total, sdc_threshold)
   )
 
 write_csv(
@@ -323,20 +321,18 @@ table_overall_noninterval_flags_unrounded <-
   make_summary_table_total(
     data = flag_long_noninterval,
     denom_data = data_vax_ELD,
-    group_vars = c("flag_type"),
-    round = FALSE
+    group_vars = c("flag_type")
   ) |>
-  arrange(flag_type)
+  dplyr::arrange(flag_type)
 
 table_overall_noninterval_flags_rounded <-
-  make_summary_table_total(
-    data = flag_long_noninterval,
-    denom_data = data_vax_ELD,
-    group_vars = c("flag_type"),
-    round = TRUE,
-    sdc_threshold = sdc_threshold
-  ) |>
-  arrange(flag_type)
+  table_overall_noninterval_flags_unrounded |>
+  dplyr::mutate(
+    n_records = roundmid_any(n_records, sdc_threshold),
+    n_patients = roundmid_any(n_patients, sdc_threshold),
+    denom_records_total = roundmid_any(denom_records_total, sdc_threshold),
+    denom_patients_total = roundmid_any(denom_patients_total, sdc_threshold)
+  )
 
 write_csv(
   table_overall_noninterval_flags_unrounded,
@@ -372,21 +368,18 @@ table_campaign_product_noninterval_flags_unrounded <-
     flag_data = flag_long_noninterval_primary_onwards,
     event_data = data_vax_ELD_primary_onwards,
     registration_data = data_registration_ELD,
-    group_vars = c("campaign", "vax_product", "flag_type"),
-    round = FALSE
+    group_vars = c("campaign", "vax_product", "flag_type")
   ) |>
   dplyr::arrange(campaign, vax_product, flag_type)
 
 table_campaign_product_noninterval_flags_rounded <-
-  make_summary_table_vaccination_date_specific_active(
-    flag_data = flag_long_noninterval_primary_onwards,
-    event_data = data_vax_ELD_primary_onwards,
-    registration_data = data_registration_ELD,
-    group_vars = c("campaign", "vax_product", "flag_type"),
-    round = TRUE,
-    sdc_threshold = sdc_threshold
-  ) |>
-  dplyr::arrange(campaign, vax_product, flag_type)
+  table_campaign_product_noninterval_flags_unrounded |>
+  dplyr::mutate(
+    n_records = roundmid_any(n_records, sdc_threshold),
+    n_patients = roundmid_any(n_patients, sdc_threshold),
+    denom_patients_group = roundmid_any(denom_patients_group, sdc_threshold),
+    denom_records_group = roundmid_any(denom_records_group, sdc_threshold)
+  )
 
 write_csv(
   table_campaign_product_noninterval_flags_unrounded,
@@ -402,19 +395,20 @@ write_csv(
 table_interval_context_unrounded <-
   make_interval_table(
     data = data_vax_interval,
-    group_vars = "interval_context",
-    round = FALSE
+    group_vars = "interval_context"
   ) |>
-  arrange(interval_context, interval_bin)
+  dplyr::arrange(interval_context, interval_bin)
 
 table_interval_context_rounded <-
-  make_interval_table(
-    data = data_vax_interval,
-    group_vars = "interval_context",
-    round = TRUE,
-    sdc_threshold = sdc_threshold
-  ) |>
-  arrange(interval_context, interval_bin)
+  table_interval_context_unrounded |>
+  dplyr::mutate(
+    n_records = roundmid_any(n_records, sdc_threshold),
+    n_patients = roundmid_any(n_patients, sdc_threshold),
+    denom_records_group = roundmid_any(denom_records_group, sdc_threshold),
+    denom_patients_group = roundmid_any(denom_patients_group, sdc_threshold),
+    denom_records_total = roundmid_any(denom_records_total, sdc_threshold),
+    denom_patients_total = roundmid_any(denom_patients_total, sdc_threshold)
+  )
 
 write_csv(
   table_interval_context_unrounded,
@@ -431,19 +425,20 @@ write_csv(
 table_interval_campaign_product_transition_unrounded <-
   make_interval_table(
     data = data_vax_interval,
-    group_vars = c("campaign_transition_type", "product_transition_type"),
-    round = FALSE
+    group_vars = c("campaign_transition_type", "product_transition_type")
   ) |>
   arrange(campaign_transition_type, product_transition_type, interval_bin)
 
 table_interval_campaign_product_transition_rounded <-
-  make_interval_table(
-    data = data_vax_interval,
-    group_vars = c("campaign_transition_type", "product_transition_type"),
-    round = TRUE,
-    sdc_threshold = sdc_threshold
-  ) |>
-  arrange(campaign_transition_type, product_transition_type, interval_bin)
+  table_interval_campaign_product_transition_unrounded |>
+  dplyr::mutate(
+    n_records = roundmid_any(n_records, sdc_threshold),
+    n_patients = roundmid_any(n_patients, sdc_threshold),
+    denom_records_group = roundmid_any(denom_records_group, sdc_threshold),
+    denom_patients_group = roundmid_any(denom_patients_group, sdc_threshold),
+    denom_records_total = roundmid_any(denom_records_total, sdc_threshold),
+    denom_patients_total = roundmid_any(denom_patients_total, sdc_threshold)
+  )
 
 write_csv(
   table_interval_campaign_product_transition_unrounded,
@@ -459,19 +454,20 @@ write_csv(
 table_interval_campaign_transition_unrounded <-
   make_interval_table(
     data = data_vax_interval,
-    group_vars = "campaign_transition_type",
-    round = FALSE
+    group_vars = "campaign_transition_type"
   ) |>
   arrange(campaign_transition_type, interval_bin)
 
 table_interval_campaign_transition_rounded <-
-  make_interval_table(
-    data = data_vax_interval,
-    group_vars = "campaign_transition_type",
-    round = TRUE,
-    sdc_threshold = sdc_threshold
-  ) |>
-  arrange(campaign_transition_type, interval_bin)
+  table_interval_campaign_transition_unrounded |>
+  dplyr::mutate(
+    n_records = roundmid_any(n_records, sdc_threshold),
+    n_patients = roundmid_any(n_patients, sdc_threshold),
+    denom_records_group = roundmid_any(denom_records_group, sdc_threshold),
+    denom_patients_group = roundmid_any(denom_patients_group, sdc_threshold),
+    denom_records_total = roundmid_any(denom_records_total, sdc_threshold),
+    denom_patients_total = roundmid_any(denom_patients_total, sdc_threshold)
+  )
 
 write_csv(
   table_interval_campaign_transition_unrounded,
@@ -488,19 +484,20 @@ write_csv(
 table_interval_product_transition_unrounded <-
   make_interval_table(
     data = data_vax_interval,
-    group_vars = "product_transition_type",
-    round = FALSE
+    group_vars = "product_transition_type"
   ) |>
   arrange(product_transition_type, interval_bin)
 
 table_interval_product_transition_rounded <-
-  make_interval_table(
-    data = data_vax_interval,
-    group_vars = "product_transition_type",
-    round = TRUE,
-    sdc_threshold = sdc_threshold
-  ) |>
-  arrange(product_transition_type, interval_bin)
+  table_interval_product_transition_unrounded |>
+  dplyr::mutate(
+    n_records = roundmid_any(n_records, sdc_threshold),
+    n_patients = roundmid_any(n_patients, sdc_threshold),
+    denom_records_group = roundmid_any(denom_records_group, sdc_threshold),
+    denom_patients_group = roundmid_any(denom_patients_group, sdc_threshold),
+    denom_records_total = roundmid_any(denom_records_total, sdc_threshold),
+    denom_patients_total = roundmid_any(denom_patients_total, sdc_threshold)
+  )
 
 write_csv(
   table_interval_product_transition_unrounded,

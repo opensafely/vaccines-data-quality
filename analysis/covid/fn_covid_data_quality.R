@@ -18,20 +18,11 @@ roundmid_any <- function(x, to = 1) {
   }
 }
 
-make_round_fun <- function(round, sdc_threshold) {
-  function(x) {
-    if (round) roundmid_any(x, sdc_threshold) else x
-  }
-}
 
 # 2. Summary table functions ----
 
 # ---- helper A: record-level flag count summary ----
-make_record_flag_count_table <- function(data, flag_vars, round = FALSE, sdc_threshold = NULL) {
-
-  round_fun <- make_round_fun(round, sdc_threshold)
-
-  suffix <- if (round) "_midpoint10" else ""
+make_record_flag_count_table <- function(data, flag_vars) {
 
   out <-
     data |>
@@ -47,41 +38,23 @@ make_record_flag_count_table <- function(data, flag_vars, round = FALSE, sdc_thr
     dplyr::mutate(
       denom_records_total = sum(n_records)
     ) |>
-    dplyr::arrange(flag_count) |>
-    dplyr::mutate(
-      n_records = round_fun(n_records),
-      denom_records_total = round_fun(denom_records_total)
-    )
-
-  if (round) {
-    names(out) <- gsub(
-      "(n_records|denom_records_total)$",
-      paste0("\\1", suffix),
-      names(out)
-    )
-  }
+    dplyr::arrange(flag_count)
 
   out
 }
 
 # ---- helper B: summary table with total denominator only ----
-make_summary_table_total <- function(data, group_vars, denom_data, round = FALSE, sdc_threshold = NULL) {
+make_summary_table_total <- function(data, group_vars, denom_data) {
 
-  # function to optionally round values
-  round_fun <- make_round_fun(round, sdc_threshold)
-
-  # choose column suffix
-  suffix <- if (round) "_midpoint10" else ""
-
-  denom_records_total <- round_fun(nrow(denom_data))
-  denom_patients_total <- round_fun(dplyr::n_distinct(denom_data$patient_id))
+  denom_records_total <- nrow(denom_data)
+  denom_patients_total <- dplyr::n_distinct(denom_data$patient_id)
 
   out <-
     data |>
-    dplyr::group_by(dplyr::across(all_of(group_vars))) |>
+    dplyr::group_by(dplyr::across(dplyr::all_of(group_vars))) |>
     dplyr::summarise(
-      n_records = round_fun(dplyr::n()),
-      n_patients = round_fun(dplyr::n_distinct(patient_id)),
+      n_records = dplyr::n(),
+      n_patients = dplyr::n_distinct(patient_id),
       .groups = "drop"
     ) |>
     dplyr::mutate(
@@ -89,35 +62,17 @@ make_summary_table_total <- function(data, group_vars, denom_data, round = FALSE
       denom_patients_total = denom_patients_total
     )
 
-  # apply suffix if rounding
-  if (round) {
-    names(out) <- gsub(
-      "(n_records|n_patients|denom_records_total|denom_patients_total)$",
-      paste0("\\1", suffix),
-      names(out)
-    )
-  }
-
   out |>
-    dplyr::select(all_of(group_vars), dplyr::everything())
+    dplyr::select(dplyr::all_of(group_vars), dplyr::everything())
 }
-
 
 # ---- helper C: campaign summary with vaccination-date-specific active denominators ----
 make_summary_table_vaccination_date_specific_active <- function(
   flag_data,
   event_data,
   registration_data,
-  group_vars,
-  round = FALSE,
-  sdc_threshold = NULL
+  group_vars
 ) {
-
-  # function to optionally round values
-  round_fun <- make_round_fun(round, sdc_threshold)
-
-  # choose column suffix
-  suffix <- if (round) "_midpoint10" else ""
 
   # vaccination event data: one row per vaccination event
   event_status_df <-
@@ -160,11 +115,17 @@ make_summary_table_vaccination_date_specific_active <- function(
       registered_on_vax_date =
         !is.na(registration_start_date) &
         registration_start_date <= vax_date &
-        (is.na(deregistration_date) | deregistration_date >= vax_date),
+        (
+          is.na(deregistration_date) |
+            deregistration_date >= vax_date
+        ),
 
       active_on_vax_date =
         registered_on_vax_date &
-        (is.na(death_date) | death_date >= vax_date)
+        (
+          is.na(death_date) |
+            death_date >= vax_date
+        )
     ) |>
     dplyr::group_by(event_id, patient_id, vax_date, campaign) |>
     dplyr::summarise(
@@ -178,7 +139,7 @@ make_summary_table_vaccination_date_specific_active <- function(
     dplyr::filter(active_on_vax_date) |>
     dplyr::group_by(campaign) |>
     dplyr::summarise(
-      denom_patients_group = round_fun(dplyr::n_distinct(patient_id)),
+      denom_patients_group = dplyr::n_distinct(patient_id),
       .groups = "drop"
     )
 
@@ -188,7 +149,7 @@ make_summary_table_vaccination_date_specific_active <- function(
     dplyr::filter(active_on_vax_date) |>
     dplyr::group_by(campaign) |>
     dplyr::summarise(
-      denom_records_group = round_fun(dplyr::n()),
+      denom_records_group = dplyr::n(),
       .groups = "drop"
     )
 
@@ -196,11 +157,11 @@ make_summary_table_vaccination_date_specific_active <- function(
   numerator_df <-
     flag_data |>
     dplyr::group_by(
-      dplyr::across(all_of(group_vars))
+      dplyr::across(dplyr::all_of(group_vars))
     ) |>
     dplyr::summarise(
-      n_records = round_fun(dplyr::n()),
-      n_patients = round_fun(dplyr::n_distinct(patient_id)),
+      n_records = dplyr::n(),
+      n_patients = dplyr::n_distinct(patient_id),
       .groups = "drop"
     )
 
@@ -209,45 +170,34 @@ make_summary_table_vaccination_date_specific_active <- function(
     dplyr::left_join(denom_patients_group_df, by = "campaign") |>
     dplyr::left_join(denom_records_group_df, by = "campaign")
 
-  # apply suffix if rounding
-  if (round) {
-    names(out) <- gsub(
-      "(n_records|n_patients|denom_records_group|denom_patients_group)$",
-      paste0("\\1", suffix),
-      names(out)
-    )
-  }
-
   out |>
-    dplyr::select(all_of(group_vars), dplyr::everything())
+    dplyr::select(dplyr::all_of(group_vars), dplyr::everything())
 }
 
 
 # ---- helper D: interval table with group and total denominators ----
-make_interval_table <- function(data, group_vars, round = FALSE, sdc_threshold = NULL) {
+make_interval_table <- function(data, group_vars) {
 
-  round_fun <- make_round_fun(round, sdc_threshold)
-
-  suffix <- if (round) "_midpoint10" else ""
-
-  denom_records_total <- round_fun(nrow(data))
-  denom_patients_total <- round_fun(dplyr::n_distinct(data$patient_id))
+  denom_records_total <- nrow(data)
+  denom_patients_total <- dplyr::n_distinct(data$patient_id)
 
   summary_df <-
     data |>
-    dplyr::group_by(dplyr::across(all_of(c(group_vars, "interval_bin")))) |>
+    dplyr::group_by(
+      dplyr::across(dplyr::all_of(c(group_vars, "interval_bin")))
+    ) |>
     dplyr::summarise(
-      n_records = round_fun(dplyr::n()),
-      n_patients = round_fun(dplyr::n_distinct(patient_id)),
+      n_records = dplyr::n(),
+      n_patients = dplyr::n_distinct(patient_id),
       .groups = "drop"
     )
 
   denom_df_group <-
     data |>
-    dplyr::group_by(dplyr::across(all_of(group_vars))) |>
+    dplyr::group_by(dplyr::across(dplyr::all_of(group_vars))) |>
     dplyr::summarise(
-      denom_records_group = round_fun(dplyr::n()),
-      denom_patients_group = round_fun(dplyr::n_distinct(patient_id)),
+      denom_records_group = dplyr::n(),
+      denom_patients_group = dplyr::n_distinct(patient_id),
       .groups = "drop"
     )
 
@@ -259,18 +209,13 @@ make_interval_table <- function(data, group_vars, round = FALSE, sdc_threshold =
       denom_patients_total = denom_patients_total
     )
 
-  if (round) {
-    names(out) <- gsub(
-      "(n_records|n_patients|denom_records_group|denom_patients_group|denom_records_total|denom_patients_total)$",
-      paste0("\\1", suffix),
-      names(out)
-    )
-  }
-
   out |>
-    dplyr::select(all_of(group_vars), interval_bin, dplyr::everything())
+    dplyr::select(
+      dplyr::all_of(group_vars),
+      interval_bin,
+      dplyr::everything()
+    )
 }
-
 
 # 3. Dummy data functions (for testing only) ----
 
