@@ -13,7 +13,7 @@ This work also supports the wider OVERTURE project in determining the best way t
 Four main domains are assessed:
 
 1. Impossible dates  
-2. Non-routine Products  
+2. Non-routine products  
 3. Multiple vaccinations recorded on the same day  
 4. Implausible intervals between consecutive doses
 
