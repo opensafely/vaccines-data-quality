@@ -9,8 +9,7 @@
     "early_milestone_date": "1900-02-25",
     "final_milestone_date": "2020-04-22",
     "early_milestone_days": 56,
-    "primary_milestone_days": 1,
-    "final_milestone_days": 44011
+    "primary_milestone_days": 1
   },
   "2020-04-23": {
     "campaign_label": "Pre-roll-out",
@@ -22,8 +21,7 @@
     "early_milestone_date": "2020-08-25",
     "final_milestone_date": "2020-12-07",
     "early_milestone_days": 56,
-    "primary_milestone_days": 1,
-    "final_milestone_days": 159
+    "primary_milestone_days": 1
   },
   "2020-12-08": {
     "campaign_label": "Primary series",
@@ -35,8 +33,7 @@
     "early_milestone_date": "2021-01-31",
     "final_milestone_date": "2021-09-05",
     "early_milestone_days": 56,
-    "primary_milestone_days": 206,
-    "final_milestone_days": 273
+    "primary_milestone_days": 206
   },
   "2021-09-06": {
     "campaign_label": "Autumn 2021",
@@ -48,8 +45,7 @@
     "early_milestone_date": "2021-10-31",
     "final_milestone_date": "2022-03-20",
     "early_milestone_days": 56,
-    "primary_milestone_days": 176,
-    "final_milestone_days": 196
+    "primary_milestone_days": 176
   },
   "2022-03-21": {
     "campaign_label": "Spring 2022",
@@ -61,8 +57,7 @@
     "early_milestone_date": "2022-05-15",
     "final_milestone_date": "2022-08-28",
     "early_milestone_days": 56,
-    "primary_milestone_days": 102,
-    "final_milestone_days": 161
+    "primary_milestone_days": 102
   },
   "2022-08-29": {
     "campaign_label": "Autumn 2022",
@@ -74,8 +69,7 @@
     "early_milestone_date": "2022-10-23",
     "final_milestone_date": "2023-04-02",
     "early_milestone_days": 56,
-    "primary_milestone_days": 184,
-    "final_milestone_days": 217
+    "primary_milestone_days": 184
   },
   "2023-04-03": {
     "campaign_label": "Spring 2023",
@@ -87,8 +81,7 @@
     "early_milestone_date": "2023-05-28",
     "final_milestone_date": "2023-08-27",
     "early_milestone_days": 56,
-    "primary_milestone_days": 89,
-    "final_milestone_days": 147
+    "primary_milestone_days": 89
   },
   "2023-08-28": {
     "campaign_label": "Autumn 2023",
@@ -100,8 +93,7 @@
     "early_milestone_date": "2023-10-22",
     "final_milestone_date": "2024-04-14",
     "early_milestone_days": 56,
-    "primary_milestone_days": 185,
-    "final_milestone_days": 231
+    "primary_milestone_days": 185
   },
   "2024-04-15": {
     "campaign_label": "Spring 2024",
@@ -113,8 +105,7 @@
     "early_milestone_date": "2024-06-09",
     "final_milestone_date": "2024-09-29",
     "early_milestone_days": 56,
-    "primary_milestone_days": 77,
-    "final_milestone_days": 168
+    "primary_milestone_days": 77
   },
   "2024-09-30": {
     "campaign_label": "Autumn 2024",
@@ -126,8 +117,7 @@
     "early_milestone_date": "2024-11-24",
     "final_milestone_date": "2025-03-30",
     "early_milestone_days": 56,
-    "primary_milestone_days": 152,
-    "final_milestone_days": 182
+    "primary_milestone_days": 152
   },
   "2025-03-31": {
     "campaign_label": "Spring 2025",
@@ -139,8 +129,7 @@
     "early_milestone_date": "2025-05-25",
     "final_milestone_date": "2025-09-28",
     "early_milestone_days": 56,
-    "primary_milestone_days": 92,
-    "final_milestone_days": 182
+    "primary_milestone_days": 92
   },
   "2025-09-29": {
     "campaign_label": "Autumn 2025",
@@ -152,7 +141,6 @@
     "early_milestone_date": "2025-11-23",
     "final_milestone_date": "2026-04-12",
     "early_milestone_days": 56,
-    "primary_milestone_days": 153,
-    "final_milestone_days": 196
+    "primary_milestone_days": 153
   }
 }
