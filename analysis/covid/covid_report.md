@@ -3,8 +3,8 @@
 ## 1. Aim
 
 This descriptive data quality assessment examines COVID‑19 vaccination records on OpenSAFELY at the event level. The aim is to evaluate whether the underlying data contain structural or recording issues by applying predefined flags and visual summaries to identify and quantify anomalies in dates, product, and dose intervals.
-The purpose of this work is to assess the quality of the data themselves, rather than to interpret population characteristics, conduct stratified analyses.
-Insights from this assessment will support the wider OVERTURE project in determining how best to process vaccination data, minimise errors, and understand limitations before any downstream analytic or inferential work.
+
+This work also supports the wider OVERTURE project in determining the best way to process vaccination data, minimise errors, and understand data limitations before any downstream work.
 
 ---
 
@@ -13,7 +13,7 @@ Insights from this assessment will support the wider OVERTURE project in determi
 Four main domains are assessed:
 
 1. Impossible dates  
-2. Product–approval mismatches  
+2. Non-routine products  
 3. Multiple vaccinations recorded on the same day  
 4. Implausible intervals between consecutive doses
 
@@ -48,51 +48,83 @@ Because rollout dates vary by product, product‑approval mismatches are assesse
 
 ### 3.2 Product–Approval Mismatches
 
-#### A. Unapproved products
-- **Definition:** Product not found in (`approval_lookup`).
-- **Interpretation:** May indicate overseas vaccination or non‑standard entry.  
-- **Action:** Flag + retain.
+**Definition**  
+Non‑routine products are vaccine records that do not match the expected products for a given vaccination campaign (based on `campaign_product_lookup`). Any records that do not match the routine product list are classified as **non‑routine (unexpected) products**.
 
-#### B. Products used before approval
-- **Definition:** Product appears in (`approval_lookup`), but (`vax_date`) < (`approval_date`)
-- **Interpretation:** Could be early use or recording error.  
-- **Action:** Flag; inclusion/exclusion is study‑dependent.
+This reflects how vaccines are **recorded in the data**, not necessarily the true vaccine received. Differences may arise from coding issues, overseas vaccination, or use outside standard UK programmes. All non‑routine records are flagged and kept for further analysis.
 
-#### Approval reference data:
-- The approval lookup table is based on the ECHO protocol and supplemented with publicly available regulatory sources to improve completeness.
-- Products not included in this list are not assumed to be erroneous and are retained for descriptive quantification.
-- **The current workflow is aligned with the [ECHO protocol (table2)](https://github.com/opensafely/covid-vaccine-history/blob/main/assets/ECHO-WP1-protocol-v1.2.pdf)**.
+#### Routine Products by Vaccination Campaign
+The current workflow is aligned with the [ECHO protocol (table3)](https://github.com/opensafely/covid-vaccine-history/blob/main/assets/ECHO-WP1-protocol-v1.2.pdf)**.
 
-| code                         | approval date  | Consistent_with_ECHO_Table2   | website |
-|--------------------------|---------------|-------------|------------------------------|
-| pfizer_original             | 2020‑12‑02  | Yes    | https://www.gov.uk/government/publications/regulatory-approval-of-pfizer-biontech-vaccine-for-covid-19|
-| pfizer_BA1                  | 2022‑09‑01| (2022-09-03 in protocol)      | https://mhraproducts4853.blob.core.windows.net/docs/fbb5be47fda87bdd820b91b8725654e272daadf7 |
-| pfizer_BA45                 | 2022‑09‑12|(2022-09-01 in protocol)   | <https://assets.publishing.service.gov.uk/media/63a17483e90e075872db815f/Public_Assessment_Report_-_Pfizer_BioNTech_bivalent_vaccine_-_Comirnaty_Original_Omicron_BA_4-5.pdf>|
-| pfizer_XBB15                | 2023‑09‑05 | Yes     | https://www.gov.uk/government/news/mhra-approves-pfizerbiontechs-adapted-covid-19-vaccine-comirnaty-that-targets-omicron-xbb15 |
-| pfizer_JN1                  | 2024‑07‑24   | Yes   | https://www.gov.uk/government/news/mhra-approves-comirnaty-jn1-covid-19-vaccine-for-adults-and-children-from-infancy |
-| pfizer_KP2                  | 2024‑10‑10|(not in protocol)     | https://www.gov.uk/government/news/mhra-approves-comirnaty-kp2-covid-19-vaccine-for-adults |
-| pfizer_KP2_pfs              | 2024‑10‑10|(not in protocol)     | https://www.gov.uk/government/news/mhra-approves-comirnaty-kp2-covid-19-vaccine-for-adults |
-| pfizer_unspecified          | (*) |(not in protocol) | https://www.ema.europa.eu/en/documents/product-information/comirnaty-epar-product-information_en.pdf |
-| pfizer_original_children    | 2021‑12‑22|(not in protocol)     | https://www.news-medical.net/news/20211222/MHRA-approves-new-formulation-of-Pfizer-BioNTech-COVID-19-vaccine-for-5-11-year-olds.aspx |
-| pfizer_JN1_children         | 2024‑07‑24|(not in protocol)     | https://www.gov.uk/government/news/mhra-approves-comirnaty-jn1-covid-19-vaccine-for-adults-and-children-from-infancy |
-| pfizer_XBB15_children       | 2023‑09‑05|(not in protocol)     | https://www.gov.uk/government/news/mhra-approves-pfizerbiontechs-adapted-covid-19-vaccine-comirnaty-that-targets-omicron-xbb15 |
-| pfizer_LP81_children        | (*)|(not in protocol)  | <https://www.medicines.org.uk/emc/files/pil.101151.pdf> This leaflet was last revised in 08/2025.  |
-| pfizer_original_under5      | 2022‑12‑06|(not in protocol)     | https://www.gov.uk/government/news/pfizerbiontech-covid-19-vaccine-authorised-for-use-in-infants-and-children-aged-6-months-to-4-years |
-| pfizer_JN1_under5           | 2024‑07‑24|(not in protocol)     | https://www.gov.uk/government/news/mhra-approves-comirnaty-jn1-covid-19-vaccine-for-adults-and-children-from-infancy |
-| pfizer_XBB15_under5         | 2023‑09‑05|(not in protocol)     | https://www.gov.uk/government/news/mhra-approves-pfizerbiontechs-adapted-covid-19-vaccine-comirnaty-that-targets-omicron-xbb15 |
-| pfizer_LP81_under5          | (*)|(not in protocol)  | <https://www.medicines.org.uk/emc/files/pil.101151.pdf> This leaflet was last revised in 08/2025. |
-| az_original                 | 2020‑12‑30 | Yes      | https://www.gov.uk/government/publications/regulatory-approval-of-covid-19-vaccine-astrazeneca |
-| moderna_original            | 2021‑01‑08  | Yes     | https://www.gov.uk/government/publications/regulatory-approval-of-covid-19-vaccine-moderna |
-| moderna_omicron             | 2022‑08‑12|(2022-08-15 in protocol)     | https://assets.publishing.service.gov.uk/media/637e7c638fa8f56eb5b66420/Spikevax_bivalent_PAR.pdf |
-| moderna_BA45                | (*)|(2023-02-21in protocol)       | <https://www.nasdaq.com/articles/ema-recommends-authorization-of-modernas-omicron-ba.4-ba.5-targeting-bivalent-covid-19>≈2022‑10 |
-| moderna_XBB15               | 2023‑09‑15 | Yes      | https://www.gov.uk/government/news/mhra-approves-modernas-adapted-covid-19-vaccine-spikevax-that-targets-omicron-xbb15 |
-| moderna_JN1                 | 2024‑09‑02 | Yes      | https://www.gov.uk/government/news/mhra-approves-spikevax-jn1-covid-19-vaccines-for-adults-and-children-from-infancy |
-| moderna_unspecified         | 2021‑01‑08|(not in protocol)      | <https://modernacovid19global.com/assets/n2j6zptc9y3o/4q9CXCUd9RG2Q7IzUUeE6t/34cd8bc1260dab1b6be767fb411d78be/Spikevax__previously_COVID-19_Vaccine_-_SmPC-_Qatar_-_English.pdf> |
-| sanofigsk_B1                | 2022‑12‑21  | Yes   | https://www.gov.uk/government/news/sanofi-pasteur-covid-19-vaccine-authorised-by-mhra |
-| novavax                     | 2022‑02‑03|(not in protocol)      | https://www.gov.uk/government/news/novavax-covid-19-vaccine-nuvaxovid-approved-by-mhra |
-| novavax_JN1 | 2024-11-13 | (not in protocol) | https://www.gov.uk/government/news/mhra-approves-adapted-nuvaxovid-jn1-covid-19-vaccines-for-adults-and-children-aged-12-plus |
-| jansenn                     | 2021‑05‑28|(not in protocol)     | https://www.gov.uk/government/publications/regulatory-approval-of-covid-19-vaccine-janssen |
-| valneva                     | 2022‑04‑14|(not in protocol)     | https://www.covidvaccineresearch.org/news/valneva-vaccine-approved-use-uk |
+| Campaign        | Routine products |
+|----------------|-----------------|
+| Primary series | pfizer_original; moderna_original; az_original |
+| Autumn 2021 | pfizer_original; pfizer_original_children; moderna_original; az_original |
+| Spring 2022 | pfizer_original; pfizer_original_children; moderna_original |
+| Autumn 2022 | pfizer_original; pfizer_original_children; pfizer_original_under5; moderna_original; pfizer_BA1; moderna_omicron |
+| Spring 2023 | pfizer_BA45; moderna_BA45; sanofigsk_B1 |
+| Autumn 2023 | pfizer_BA45; pfizer_XBB15_children; pfizer_XBB15_under5; moderna_BA45; pfizer_XBB15; moderna_XBB15; sanofigsk_B1 |
+| Spring 2024 | pfizer_XBB15; pfizer_XBB15_children; pfizer_XBB15_under5; moderna_XBB15 |
+| Autumn 2024 | pfizer_JN1; pfizer_JN1_children; pfizer_JN1_under5; moderna_JN1 |
+| Spring 2025 | pfizer_JN1; pfizer_JN1_children; pfizer_JN1_under5; moderna_JN1 |
+| Autumn 2025 | moderna_LP81; pfizer_LP81; pfizer_LP81_children; pfizer_LP81_under5; novavax_JN1; pfizer_KP2; pfizer_KP2_pfs |
+
+
+
+#### Non‑routine (unexpected) product categories
+
+The remaining records are classified into the following descriptive categories:
+
+| Category | Description |
+|----------|-------------|
+| Unspecified | Common vaccines recorded with incomplete or non‑specific coding (e.g. "unspecified", "pfizer_unspecified", "moderna_unspecified") |
+| Investigational | Products associated with clinical trials or development stages (e.g. "az_original_half" [TBD: exclude, map to az_original, or investigate as a potential TPP coding issue], "moderna_omicron2") |
+| Foreign equivalent | Vaccines likely received outside the UK and later recorded (e.g. "covishield", "covovax") |
+| Not approved in UK | Products not authorised for use in the UK. Includes: "sanofigsk_D614", "sanofigsk_D614B1", "sputnik_i_multi", "sputnik_ii_multi", "sputnik_i_inj", "sputnik_ii_inj", "sinopharm", "convidecia", "covaxin", "coronavac", "medicago" |
+| Before approval | Records where vaccination occurred before the product approval date |
+| Previous routine product | Products used in earlier campaigns but not in the current one |
+| Approved but not routine | Approved products not included in the routine schedule |
+
+---
+
+
+#### Approval Lookup data:
+The current workflow is aligned with the [ECHO protocol (table2)](https://github.com/opensafely/covid-vaccine-history/blob/main/assets/ECHO-WP1-protocol-v1.2.pdf)**.
+
+
+
+| code                         | approval date  |  website |
+|--------------------------|---------------|------------------------------|
+| pfizer_original             | 2020‑12‑02   | https://www.gov.uk/government/publications/regulatory-approval-of-pfizer-biontech-vaccine-for-covid-19|
+| pfizer_BA1                  | 2022‑09‑03     | https://www.gov.uk/government/news/pfizerbiontech-bivalent-covid-19-booster-approved-by-uk-medicines-regulator |
+| pfizer_BA45                 | 2022‑11‑09  | <https://www.gov.uk/government/news/second-pfizerbiontech-bivalent-covid-19-booster-vaccine-approved-by-uk-medicines-regulator>|
+| pfizer_XBB15                | 2023‑09‑05 | https://www.gov.uk/government/news/mhra-approves-pfizerbiontechs-adapted-covid-19-vaccine-comirnaty-that-targets-omicron-xbb15 |
+| pfizer_JN1                  | 2024‑07‑24    | https://www.gov.uk/government/news/mhra-approves-comirnaty-jn1-covid-19-vaccine-for-adults-and-children-from-infancy |
+| pfizer_KP2                  | 2024‑10‑10    | https://www.gov.uk/government/news/mhra-approves-comirnaty-kp2-covid-19-vaccine-for-adults |
+| pfizer_KP2_pfs              | 2024‑10‑10     | https://www.gov.uk/government/news/mhra-approves-comirnaty-kp2-covid-19-vaccine-for-adults |
+| pfizer_LP81                  | 2025‑08‑12    | https://www.medicines.org.uk/emc/product/101150/smpc |
+| pfizer_unspecified          | (*)  | https://www.ema.europa.eu/en/documents/product-information/comirnaty-epar-product-information_en.pdf |
+| pfizer_original_children    | 2021‑12‑22    | https://www.news-medical.net/news/20211222/MHRA-approves-new-formulation-of-Pfizer-BioNTech-COVID-19-vaccine-for-5-11-year-olds.aspx |
+| pfizer_JN1_children         | 2024‑07‑24     | https://www.gov.uk/government/news/mhra-approves-comirnaty-jn1-covid-19-vaccine-for-adults-and-children-from-infancy |
+| pfizer_XBB15_children       | 2023‑09‑05    | https://www.gov.uk/government/news/mhra-approves-pfizerbiontechs-adapted-covid-19-vaccine-comirnaty-that-targets-omicron-xbb15 |
+| pfizer_original_under5      | 2022‑12‑06    | https://www.gov.uk/government/news/pfizerbiontech-covid-19-vaccine-authorised-for-use-in-infants-and-children-aged-6-months-to-4-years |
+| pfizer_JN1_under5           | 2024‑07‑24     | https://www.gov.uk/government/news/mhra-approves-comirnaty-jn1-covid-19-vaccine-for-adults-and-children-from-infancy |
+| pfizer_XBB15_under5         | 2023‑09‑05  | https://www.gov.uk/government/news/mhra-approves-pfizerbiontechs-adapted-covid-19-vaccine-comirnaty-that-targets-omicron-xbb15 |
+| pfizer_LP81_children        |2025‑08‑12    | https://www.medicines.org.uk/emc/product/101150/smpc |
+| pfizer_LP81_under5          |2025‑08‑12    | https://www.medicines.org.uk/emc/product/101150/smpc |
+| az_original                 | 2020‑12‑30      | https://www.gov.uk/government/publications/regulatory-approval-of-covid-19-vaccine-astrazeneca |
+| moderna_original            | 2021‑01‑08 | https://www.gov.uk/government/publications/regulatory-approval-of-covid-19-vaccine-moderna |
+| moderna_omicron             | 2022‑08‑15   | https://www.gov.uk/government/news/first-bivalent-covid-19-booster-vaccine-approved-by-uk-medicines-regulator |
+| moderna_BA45                | 2023-02-21      | <https://www.gov.uk/government/news/second-bivalent-covid-19-booster-vaccine-from-moderna-spikevax-authorised-by-uk-medicines-regulator |
+| moderna_XBB15               | 2023‑09‑15    | https://www.gov.uk/government/news/mhra-approves-modernas-adapted-covid-19-vaccine-spikevax-that-targets-omicron-xbb15 |
+| moderna_JN1                 | 2024‑09‑02      | https://www.gov.uk/government/news/mhra-approves-spikevax-jn1-covid-19-vaccines-for-adults-and-children-from-infancy |
+| moderna_LP81                  | 2026-02-10    | https://www.medicines.org.uk/emc/product/101925/smpc |
+| moderna_unspecified         | (*)     | <https://modernacovid19global.com/assets/n2j6zptc9y3o/4q9CXCUd9RG2Q7IzUUeE6t/34cd8bc1260dab1b6be767fb411d78be/Spikevax__previously_COVID-19_Vaccine_-_SmPC-_Qatar_-_English.pdf> |
+| sanofigsk_B1                | 2022‑12‑21 | https://www.gov.uk/government/news/sanofi-pasteur-covid-19-vaccine-authorised-by-mhra |
+| novavax                     | 2022‑02‑03     | https://www.gov.uk/government/news/novavax-covid-19-vaccine-nuvaxovid-approved-by-mhra |
+| novavax_JN1 | 2024-11-13  | https://www.gov.uk/government/news/mhra-approves-adapted-nuvaxovid-jn1-covid-19-vaccines-for-adults-and-children-aged-12-plus |
+| janssen                     | 2021‑05‑28  | https://www.gov.uk/government/publications/regulatory-approval-of-covid-19-vaccine-janssen |
+| valneva                     | 2022‑04‑13    | https://www.covidvaccineresearch.org/news/valneva-vaccine-approved-use-uk |
 ---
 ### 3.3 Multiple Vaccinations on the Same Day
 
@@ -111,18 +143,14 @@ For each **patient–date–campaign** combination, the script derives the follo
 - `product_pattern`
 
 
-#### A. Same-day multiple record
-- **Definition:** `total_records_day > 1`  
-- **Interpretation:** More than one vaccination record exists for the same patient on the same date.  
-- **Action:** Flag.
 
-#### B. Same‑day same‑product
+#### A. Same‑day same‑product
 `total_records_day > 1` *and* `n_products_day == 1` 
 - **Definition:** Same patient + same date + same product, multiple entries.  
 - **Interpretation:** Highly likely duplicate.  
 - **Action:** Retain one; remove duplicates.
 
-#### C. Same‑day mixed‑product
+#### B. Same‑day mixed‑product
 `total_records_day > 1` *and* `n_products_day > 1`
 - **Definition:** Same patient + same date + different products.  
 - **Interpretation:** Could represent conflicting entries or corrected-but-not-deleted records.  
@@ -185,9 +213,7 @@ For extremely short intervals, records are removed as they are unlikely to repre
 Non-interval flags are converted into long format using the following variables:
 - `flag_implausible_early_date`
 - `flag_pre_rollout_date`
-- `flag_unapproved_product`
-- `flag_product_before_approval`
-- `flag_same_day_multiple`
+- `flag_non_routine_product`
 - `flag_same_day_same_product`
 - `flag_same_day_mixed_product`
 
@@ -203,9 +229,23 @@ Interval flags are derived using `Interval bins (1–6 → 180+ days)` to classi
 **Note:** The summary tables produced here represent the initial, high‑level version of the data‑quality summaries. Further refinements will be implemented in the R visualisation stage, including grouping vaccine products into broader categories and collapsing certain interval bins into “plausible” vs “implausible” ranges for more interpretable reporting.
 
 ### 5.1 Non-interval summaries
-Three summary tables are produced from the long-format non‑interval flag table.
+Four summary tables are produced from the non-interval flag data.
+
 
 ---
+
+#### Table 0. record_flag_count  `count_record_flag_count.csv`
+
+**Purpose:**  
+Summarises the number of non-interval data-quality flags identified per vaccination record.
+
+**Contents:**  
+For each `flag_count`:
+
+- `n_records`
+- `denom_records_total`
+---
+
 
 #### Table 1. overall_noninterval_flags  `count_overall_noninterval_flags.csv`
 
@@ -224,13 +264,13 @@ For each `flag_type`:
 
 ---
 
-#### Table 2. campaign_noninterval_flags  `count_campaign_noninterval_flags.csv`
+#### Table 2. campaign_product_noninterval_flags  `count_campaign_product_noninterval_flags.csv`
 
 **Purpose:**  
-Summarises non‑interval flags by campaign, using campaign-specific active denominators.
+Summarises non-interval flags by campaign and vaccine product, using campaign-specific active denominators.
 
 **Contents:**  
-For each `campaign × flag_type`:
+For each `campaign × vax_product × flag_type`:
 
 - `n_records`
 - `n_patients`
@@ -239,27 +279,12 @@ For each `campaign × flag_type`:
 
 
 ---
-
-#### Table 3. product_noninterval_flags  `count_product_noninterval_flags.csv`
-
-**Purpose:**  
-Summarises non‑interval flags by vaccine product.
-
-**Contents:**  
-For each `vax_product × flag_type`:
-
-- `n_records`
-- `n_patients`
-- `denom_records_total`
-- `denom_patients_total`
-
----
 ### 5.2 Interval summaries
 
-Three interval summary tables are produced from `data_vax_interval`
+Four interval summary tables are produced from `data_vax_interval`
 
 ---
-#### Table 4. interval_context x interval bin  `count_interval_context.csv`
+#### Table 3. interval_context x interval bin  `count_interval_context.csv`
 
 **Purpose:**  
 Summarises interval bins within each interval context.
@@ -276,6 +301,22 @@ For each `interval_context × interval_bin`:
 
 
 ---
+#### Table 4. campaign transition type × product transition type × interval bin  `count_interval_campaign_product_transition.csv`
+
+**Purpose:**  
+Summarises interval bins jointly by campaign transition type and product transition type.
+
+**Contents:**  
+For each `campaign_transition_type × product_transition_type × interval_bin`:
+
+- `n_records`
+- `n_patients`
+- `denom_records_group`
+- `denom_patients_group`
+- `denom_records_total`
+- `denom_patients_total`
+---
+
 
 #### Table 5. campaign transition type x interval bin `count_interval_campaign_transition.csv`
 
@@ -316,10 +357,11 @@ For each `product_transition_type × interval_bin`:
 ## 6. Main Descriptive Results
 
 Summaries should be provided for each domain:
-1. Impossible dates  
-2. Product–approval mismatches  
-3. Same‑day duplicates  
-4. Interval anomalies  
+
+1. Date anomalies
+2. Non-routine products
+3. Same-day duplicate or conflicting records
+4. Interval anomalies
 
 
 ---
@@ -334,7 +376,7 @@ For this reason, a full flow diagram is not presented here.
 ## 8. Potential Extensions
 
 - age–product consistency checks  
-- product‑specific expected‑use windows  
+
 
 
 ---
