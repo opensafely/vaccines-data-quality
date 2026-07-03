@@ -305,12 +305,12 @@ table_record_flag_count_rounded <-
     denom_records_total = roundmid_any(denom_records_total, sdc_threshold)
   )
 
-write_csv(
+write_csv_release_sized(
   table_record_flag_count_unrounded,
   fs::path(output_dir, "count_record_flag_count_unrounded.csv")
 )
 
-write_csv(
+write_csv_release_sized(
   table_record_flag_count_rounded,
   fs::path(output_dir, "count_record_flag_count.csv")
 )
@@ -334,12 +334,12 @@ table_overall_noninterval_flags_rounded <-
     denom_patients_total = roundmid_any(denom_patients_total, sdc_threshold)
   )
 
-write_csv(
+write_csv_release_sized(
   table_overall_noninterval_flags_unrounded,
   fs::path(output_dir, "count_overall_noninterval_flags_unrounded.csv")
 )
 
-write_csv(
+write_csv_release_sized(
   table_overall_noninterval_flags_rounded,
   fs::path(output_dir, "count_overall_noninterval_flags.csv")
 )
@@ -381,12 +381,12 @@ table_campaign_product_noninterval_flags_rounded <-
     denom_records_group = roundmid_any(denom_records_group, sdc_threshold)
   )
 
-write_csv(
+write_csv_release_sized(
   table_campaign_product_noninterval_flags_unrounded,
   fs::path(output_dir, "count_campaign_product_noninterval_flags_unrounded.csv")
 )
 
-write_csv(
+write_csv_release_sized(
   table_campaign_product_noninterval_flags_rounded,
   fs::path(output_dir, "count_campaign_product_noninterval_flags.csv")
 )
@@ -410,12 +410,12 @@ table_interval_context_rounded <-
     denom_patients_total = roundmid_any(denom_patients_total, sdc_threshold)
   )
 
-write_csv(
+write_csv_release_sized(
   table_interval_context_unrounded,
   fs::path(output_dir, "count_interval_context_unrounded.csv")
 )
 
-write_csv(
+write_csv_release_sized(
   table_interval_context_rounded,
   fs::path(output_dir, "count_interval_context.csv")
 )
@@ -440,12 +440,12 @@ table_interval_campaign_product_transition_rounded <-
     denom_patients_total = roundmid_any(denom_patients_total, sdc_threshold)
   )
 
-write_csv(
+write_csv_release_sized(
   table_interval_campaign_product_transition_unrounded,
   fs::path(output_dir, "count_interval_campaign_product_transition_unrounded.csv")
 )
 
-write_csv(
+write_csv_release_sized(
   table_interval_campaign_product_transition_rounded,
   fs::path(output_dir, "count_interval_campaign_product_transition.csv")
 )
@@ -469,12 +469,12 @@ table_interval_campaign_transition_rounded <-
     denom_patients_total = roundmid_any(denom_patients_total, sdc_threshold)
   )
 
-write_csv(
+write_csv_release_sized(
   table_interval_campaign_transition_unrounded,
   fs::path(output_dir, "count_interval_campaign_transition_unrounded.csv")
 )
 
-write_csv(
+write_csv_release_sized(
   table_interval_campaign_transition_rounded,
   fs::path(output_dir, "count_interval_campaign_transition.csv")
 )
@@ -499,12 +499,12 @@ table_interval_product_transition_rounded <-
     denom_patients_total = roundmid_any(denom_patients_total, sdc_threshold)
   )
 
-write_csv(
+write_csv_release_sized(
   table_interval_product_transition_unrounded,
   fs::path(output_dir, "count_interval_product_transition_unrounded.csv")
 )
 
-write_csv(
+write_csv_release_sized(
   table_interval_product_transition_rounded,
   fs::path(output_dir, "count_interval_product_transition.csv")
 )
@@ -541,12 +541,12 @@ count_mixed_products_cooccurrence <-
     count_total = roundmid_any(count_total, sdc_threshold)
   )
 
-write_csv(
+write_csv_release_sized(
   count_mixed_products_cooccurrence_unrounded,
   fs::path(output_dir, "count_same_day_mixed_product_cooccurrence_unrounded.csv")
 )
 
-write_csv(
+write_csv_release_sized(
   count_mixed_products_cooccurrence,
   fs::path(output_dir, "count_same_day_mixed_product_cooccurrence.csv")
 )

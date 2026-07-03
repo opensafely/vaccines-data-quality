@@ -217,6 +217,42 @@ make_interval_table <- function(data, group_vars) {
     )
 }
 
+# ---- helper E: Split files ----
+write_csv_release_sized <- function(data, path, max_rows = 4999) {
+  
+  n <- nrow(data)
+  
+  if (n <= max_rows) {
+    readr::write_csv(data, path)
+  } else {
+    
+    path_dir <- fs::path_dir(path)
+    path_ext <- fs::path_ext(path)
+    path_stem <- fs::path_ext_remove(fs::path_file(path))
+    
+    data_split <-
+      data |>
+      dplyr::mutate(.table_part = ceiling(dplyr::row_number() / max_rows))
+    
+    split_tables <-
+      split(
+        data_split |> dplyr::select(-.table_part),
+        data_split$.table_part
+      )
+    
+    purrr::iwalk(
+      split_tables,
+      ~ readr::write_csv(
+        .x,
+        fs::path(
+          path_dir,
+          paste0(path_stem, "_part", .y, ".", path_ext)
+        )
+      )
+    )
+  }
+}
+
 # 3. Dummy data functions (for testing only) ----
 
 recalculate_age_from_shift <- function(data) {
