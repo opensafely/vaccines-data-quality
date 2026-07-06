@@ -218,39 +218,97 @@ make_interval_table <- function(data, group_vars) {
 }
 
 # ---- helper E: Split files ----
-write_csv_release_sized <- function(data, path, max_rows = 4999) {
-  
-  n <- nrow(data)
-  
-  if (n <= max_rows) {
-    readr::write_csv(data, path)
-  } else {
-    
-    path_dir <- fs::path_dir(path)
-    path_ext <- fs::path_ext(path)
-    path_stem <- fs::path_ext_remove(fs::path_file(path))
-    
-    data_split <-
+write_csv_split_by <- function(data,
+                               split_var,
+                               output_dir,
+                               file_prefix,
+                               max_rows = 5000) {
+
+  if (split_var == "campaign") {
+    data <-
       data |>
-      dplyr::mutate(.table_part = ceiling(dplyr::row_number() / max_rows))
-    
-    split_tables <-
-      split(
-        data_split |> dplyr::select(-.table_part),
-        data_split$.table_part
-      )
-    
-    purrr::iwalk(
-      split_tables,
-      ~ readr::write_csv(
-        .x,
-        fs::path(
-          path_dir,
-          paste0(path_stem, "_part", .y, ".", path_ext)
+      dplyr::mutate(
+        campaign_unit = dplyr::case_when(
+          campaign == "Autumn 2021" ~ "campaign_group_2021",
+          campaign %in% c("Spring 2022", "Autumn 2022") ~ "campaign_group_2022",
+          campaign %in% c("Spring 2023", "Autumn 2023") ~ "campaign_group_2023",
+          campaign %in% c("Spring 2024", "Autumn 2024") ~ "campaign_group_2024",
+          campaign %in% c("Spring 2025", "Autumn 2025") ~ "campaign_group_2025",
+          TRUE ~ "campaign_group_pre_primary"
         )
       )
+
+    campaign_unit_order <- c(
+      "campaign_group_pre_primary",
+      "campaign_group_2021",
+      "campaign_group_2022",
+      "campaign_group_2023",
+      "campaign_group_2024",
+      "campaign_group_2025"
     )
+
+    campaign_unit_counts <-
+      data |>
+      dplyr::count(campaign_unit, name = "n_rows") |>
+      dplyr::mutate(
+        campaign_unit = factor(campaign_unit, levels = campaign_unit_order)
+      ) |>
+      dplyr::arrange(campaign_unit) |>
+      dplyr::mutate(campaign_unit = as.character(campaign_unit))
+
+    campaign_unit_counts$campaign_group <- NA_character_
+
+    group_id <- 1
+    current_n <- 0
+
+    for (i in seq_len(nrow(campaign_unit_counts))) {
+      this_n <- campaign_unit_counts$n_rows[i]
+
+      if (current_n + this_n > max_rows && current_n > 0) {
+        group_id <- group_id + 1
+        current_n <- 0
+      }
+
+      campaign_unit_counts$campaign_group[i] <-
+        paste0("campaign_group_", group_id)
+
+      current_n <- current_n + this_n
+    }
+
+    
+    data <-
+      data |>
+      dplyr::left_join(
+        campaign_unit_counts |>
+          dplyr::select(campaign_unit, campaign_group),
+        by = "campaign_unit"
+      )
+    
+    message("Campaign groups:")
+    data |>
+      dplyr::count(campaign_group, campaign, name = "n_rows") |>
+      print(n = Inf)
   }
+
+  
+
+  if (split_var == "campaign") {
+    split_data <- split(data, data$campaign_group)
+    } else {
+      split_data <- split(data, data[[split_var]])
+  }
+
+
+  purrr::iwalk(
+    split_data,
+    ~ readr::write_csv(
+      .x,
+      fs::path(
+        output_dir,
+        paste0(file_prefix, "_", .y, ".csv")
+      )
+    )
+  )
 }
 
 # 3. Dummy data functions (for testing only) ----
