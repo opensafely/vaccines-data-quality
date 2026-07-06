@@ -425,9 +425,20 @@ write_csv(
 table_interval_campaign_product_transition_unrounded <-
   make_interval_table(
     data = data_vax_interval,
-    group_vars = c("campaign_transition_type", "product_transition_type")
+    group_vars = c(
+      "prev_campaign",
+      "campaign",
+      "prev_product",
+      "vax_product"
+    )
   ) |>
-  arrange(campaign_transition_type, product_transition_type, interval_bin)
+  arrange(
+    prev_campaign,
+    campaign,
+    prev_product,
+    vax_product,
+    interval_bin
+  )
 
 table_interval_campaign_product_transition_rounded <-
   table_interval_campaign_product_transition_unrounded |>
@@ -439,15 +450,18 @@ table_interval_campaign_product_transition_rounded <-
     denom_records_total = roundmid_any(denom_records_total, sdc_threshold),
     denom_patients_total = roundmid_any(denom_patients_total, sdc_threshold)
   )
-
-write_csv_release_sized(
+write_csv_split_by(
   table_interval_campaign_product_transition_unrounded,
-  fs::path(output_dir, "count_interval_campaign_product_transition_unrounded.csv")
+  "campaign",
+  output_dir,
+  "count_interval_campaign_product_transition_unrounded"
 )
 
-write_csv_release_sized(
+write_csv_split_by(
   table_interval_campaign_product_transition_rounded,
-  fs::path(output_dir, "count_interval_campaign_product_transition.csv")
+  "campaign",
+  output_dir,
+  "count_interval_campaign_product_transition"
 )
 
 # ---- Table 5: campaign transition type x interval bin ----
@@ -515,9 +529,9 @@ write_csv(
 mixed_products_cooccurrence_flat <-
   data_vax_ELD |>
   filter(flag_same_day_mixed_product) |>
-  count(patient_id, vax_date, vax_product, name = "n") |>
-  arrange(patient_id, vax_date, vax_product) |>
-  group_by(patient_id, vax_date) |>
+  count(patient_id, campaign, vax_date, vax_product, name = "n") |>
+  arrange(patient_id, campaign, vax_date, vax_product) |>
+  group_by(patient_id, campaign, vax_date) |>
   summarise(
     vax_product =
       paste0(n, "x ", as.character(vax_product),
@@ -528,11 +542,12 @@ mixed_products_cooccurrence_flat <-
 count_mixed_products_cooccurrence_unrounded <-
   mixed_products_cooccurrence_flat |>
   count(
+    campaign,
     vax_date,
     vax_product,
     name = "count_total"
     ) |>
-  arrange(desc(count_total)) |>
+  arrange(campaign, desc(count_total)) |>
   as_tibble()
 
 count_mixed_products_cooccurrence <-
@@ -541,12 +556,16 @@ count_mixed_products_cooccurrence <-
     count_total = roundmid_any(count_total, sdc_threshold)
   )
 
-write_csv_release_sized(
+write_csv_split_by(
   count_mixed_products_cooccurrence_unrounded,
-  fs::path(output_dir, "count_same_day_mixed_product_cooccurrence_unrounded.csv")
+  "campaign",
+  output_dir,
+  "count_same_day_mixed_product_cooccurrence_unrounded"
 )
 
-write_csv_release_sized(
+write_csv_split_by(
   count_mixed_products_cooccurrence,
-  fs::path(output_dir, "count_same_day_mixed_product_cooccurrence.csv")
+  "campaign",
+  output_dir,
+  "count_same_day_mixed_product_cooccurrence"
 )
