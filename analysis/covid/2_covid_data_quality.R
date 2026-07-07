@@ -28,7 +28,16 @@ source(here("analysis", "covid", "0_covid_design.R"))
 
 # create output directory
 output_dir <- here("output", "covid", "covid_data_quality")
-fs::dir_create(output_dir)
+
+output_dir_noninterval <- fs::path(output_dir, "noninterval_flags")
+output_dir_interval <- fs::path(output_dir, "interval")
+output_dir_interval_campaign <- fs::path(output_dir, "interval_campaign")
+output_dir_same_day <- fs::path(output_dir, "same_day")
+
+fs::dir_create(output_dir_noninterval)
+fs::dir_create(output_dir_interval)
+fs::dir_create(output_dir_interval_campaign)
+fs::dir_create(output_dir_same_day)
 options(width = 200) # set output width for capture.output
 
 
@@ -307,12 +316,12 @@ table_record_flag_count_rounded <-
 
 write_csv(
   table_record_flag_count_unrounded,
-  fs::path(output_dir, "count_record_flag_count_unrounded.csv")
+  fs::path(output_dir_noninterval, "count_record_flag_count_unrounded.csv")
 )
 
 write_csv(
   table_record_flag_count_rounded,
-  fs::path(output_dir, "count_record_flag_count.csv")
+  fs::path(output_dir_noninterval, "count_record_flag_count.csv")
 )
 
 
@@ -336,12 +345,12 @@ table_overall_noninterval_flags_rounded <-
 
 write_csv(
   table_overall_noninterval_flags_unrounded,
-  fs::path(output_dir, "count_overall_noninterval_flags_unrounded.csv")
+  fs::path(output_dir_noninterval, "count_overall_noninterval_flags_unrounded.csv")
 )
 
 write_csv(
   table_overall_noninterval_flags_rounded,
-  fs::path(output_dir, "count_overall_noninterval_flags.csv")
+  fs::path(output_dir_noninterval, "count_overall_noninterval_flags.csv")
 )
 
 
@@ -383,12 +392,12 @@ table_campaign_product_noninterval_flags_rounded <-
 
 write_csv(
   table_campaign_product_noninterval_flags_unrounded,
-  fs::path(output_dir, "count_campaign_product_noninterval_flags_unrounded.csv")
+  fs::path(output_dir_noninterval, "count_campaign_product_noninterval_flags_unrounded.csv")
 )
 
 write_csv(
   table_campaign_product_noninterval_flags_rounded,
-  fs::path(output_dir, "count_campaign_product_noninterval_flags.csv")
+  fs::path(output_dir_noninterval, "count_campaign_product_noninterval_flags.csv")
 )
 
 # ---- Table 3: interval context x interval bin ----
@@ -412,12 +421,12 @@ table_interval_context_rounded <-
 
 write_csv(
   table_interval_context_unrounded,
-  fs::path(output_dir, "count_interval_context_unrounded.csv")
+  fs::path(output_dir_interval, "count_interval_context_unrounded.csv")
 )
 
 write_csv(
   table_interval_context_rounded,
-  fs::path(output_dir, "count_interval_context.csv")
+  fs::path(output_dir_interval, "count_interval_context.csv")
 )
 
 # ---- Table 4: campaign transition x product transition x interval bin ----
@@ -453,14 +462,14 @@ table_interval_campaign_product_transition_rounded <-
 write_csv_split_by(
   table_interval_campaign_product_transition_unrounded,
   "campaign",
-  output_dir,
+  output_dir_interval_campaign,
   "count_interval_campaign_product_transition_unrounded"
 )
 
 write_csv_split_by(
   table_interval_campaign_product_transition_rounded,
   "campaign",
-  output_dir,
+  output_dir_interval_campaign,
   "count_interval_campaign_product_transition"
 )
 
@@ -485,12 +494,12 @@ table_interval_campaign_transition_rounded <-
 
 write_csv(
   table_interval_campaign_transition_unrounded,
-  fs::path(output_dir, "count_interval_campaign_transition_unrounded.csv")
+  fs::path(output_dir_interval, "count_interval_campaign_transition_unrounded.csv")
 )
 
 write_csv(
   table_interval_campaign_transition_rounded,
-  fs::path(output_dir, "count_interval_campaign_transition.csv")
+  fs::path(output_dir_interval, "count_interval_campaign_transition.csv")
 )
 
 
@@ -515,12 +524,12 @@ table_interval_product_transition_rounded <-
 
 write_csv(
   table_interval_product_transition_unrounded,
-  fs::path(output_dir, "count_interval_product_transition_unrounded.csv")
+  fs::path(output_dir_interval, "count_interval_product_transition_unrounded.csv")
 )
 
 write_csv(
   table_interval_product_transition_rounded,
-  fs::path(output_dir, "count_interval_product_transition.csv")
+  fs::path(output_dir_interval, "count_interval_product_transition.csv")
 )
 
 
@@ -559,13 +568,13 @@ count_mixed_products_cooccurrence <-
 write_csv_split_by(
   count_mixed_products_cooccurrence_unrounded,
   "campaign",
-  output_dir,
+  output_dir_same_day,
   "count_same_day_mixed_product_cooccurrence_unrounded"
 )
 
 write_csv_split_by(
   count_mixed_products_cooccurrence,
   "campaign",
-  output_dir,
+  output_dir_same_day,
   "count_same_day_mixed_product_cooccurrence"
 )
