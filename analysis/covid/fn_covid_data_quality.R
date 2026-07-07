@@ -260,19 +260,38 @@ write_csv_split_by <- function(data,
 
     group_id <- 1
     current_n <- 0
+    current_units <- character()
 
     for (i in seq_len(nrow(campaign_unit_counts))) {
       this_n <- campaign_unit_counts$n_rows[i]
+      this_unit <- campaign_unit_counts$campaign_unit[i]
 
       if (current_n + this_n > max_rows && current_n > 0) {
+        group_name <- paste(current_units, collapse = "+")
+        group_name <- gsub("campaign_group_", "", group_name)
+        group_name <- paste0("campaigns_", group_name)
+
+        campaign_unit_counts$campaign_group[
+          campaign_unit_counts$campaign_unit %in% current_units
+        ] <- group_name
+
         group_id <- group_id + 1
         current_n <- 0
+        current_units <- character()
       }
 
-      campaign_unit_counts$campaign_group[i] <-
-        paste0("campaign_group_", group_id)
-
       current_n <- current_n + this_n
+      current_units <- c(current_units, this_unit)
+    }
+
+    if (length(current_units) > 0) {
+      group_name <- paste(current_units, collapse = "+")
+      group_name <- gsub("campaign_group_", "", group_name)
+      group_name <- paste0("campaigns_", group_name)
+
+      campaign_unit_counts$campaign_group[
+        campaign_unit_counts$campaign_unit %in% current_units
+      ] <- group_name
     }
 
     
@@ -301,13 +320,20 @@ write_csv_split_by <- function(data,
 
   purrr::iwalk(
     split_data,
-    ~ readr::write_csv(
-      .x,
-      fs::path(
-        output_dir,
-        paste0(file_prefix, "_", .y, ".csv")
+    ~ {
+      safe_name <- .y |>
+      stringr::str_to_lower() |>
+      stringr::str_replace_all("[^a-z0-9+]+", "_") |>
+      stringr::str_replace_all("^_|_$", "")
+
+      readr::write_csv(
+        .x,
+        fs::path(
+          output_dir,
+          paste0(file_prefix, "_", safe_name, ".csv")
+        )
       )
-    )
+    }
   )
 }
 
