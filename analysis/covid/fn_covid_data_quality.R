@@ -221,14 +221,13 @@ make_interval_table <- function(data, group_vars) {
 write_csv_split_by <- function(data,
                                split_var,
                                output_dir,
-                               file_prefix,
-                               max_rows = 5000) {
+                               file_prefix) {
 
   if (split_var == "campaign") {
     data <-
       data |>
       dplyr::mutate(
-        campaign_unit = dplyr::case_when(
+        campaign_group = dplyr::case_when(
           campaign == "Autumn 2021" ~ "campaign_group_2021",
           campaign %in% c("Spring 2022", "Autumn 2022") ~ "campaign_group_2022",
           campaign %in% c("Spring 2023", "Autumn 2023") ~ "campaign_group_2023",
@@ -238,78 +237,11 @@ write_csv_split_by <- function(data,
         )
       )
 
-    campaign_unit_order <- c(
-      "campaign_group_pre_primary",
-      "campaign_group_2021",
-      "campaign_group_2022",
-      "campaign_group_2023",
-      "campaign_group_2024",
-      "campaign_group_2025"
-    )
-
-    campaign_unit_counts <-
-      data |>
-      dplyr::count(campaign_unit, name = "n_rows") |>
-      dplyr::mutate(
-        campaign_unit = factor(campaign_unit, levels = campaign_unit_order)
-      ) |>
-      dplyr::arrange(campaign_unit) |>
-      dplyr::mutate(campaign_unit = as.character(campaign_unit))
-
-    campaign_unit_counts$campaign_group <- NA_character_
-
-    group_id <- 1
-    current_n <- 0
-    current_units <- character()
-
-    for (i in seq_len(nrow(campaign_unit_counts))) {
-      this_n <- campaign_unit_counts$n_rows[i]
-      this_unit <- campaign_unit_counts$campaign_unit[i]
-
-      if (current_n + this_n > max_rows && current_n > 0) {
-        group_name <- paste(current_units, collapse = "+")
-        group_name <- gsub("campaign_group_", "", group_name)
-        group_name <- paste0("campaigns_", group_name)
-
-        campaign_unit_counts$campaign_group[
-          campaign_unit_counts$campaign_unit %in% current_units
-        ] <- group_name
-
-        group_id <- group_id + 1
-        current_n <- 0
-        current_units <- character()
-      }
-
-      current_n <- current_n + this_n
-      current_units <- c(current_units, this_unit)
-    }
-
-    if (length(current_units) > 0) {
-      group_name <- paste(current_units, collapse = "+")
-      group_name <- gsub("campaign_group_", "", group_name)
-      group_name <- paste0("campaigns_", group_name)
-
-      campaign_unit_counts$campaign_group[
-        campaign_unit_counts$campaign_unit %in% current_units
-      ] <- group_name
-    }
-
-    
-    data <-
-      data |>
-      dplyr::left_join(
-        campaign_unit_counts |>
-          dplyr::select(campaign_unit, campaign_group),
-        by = "campaign_unit"
-      )
-    
     message("Campaign groups:")
     data |>
       dplyr::count(campaign_group, campaign, name = "n_rows") |>
       print(n = Inf)
   }
-
-  
 
   if (split_var == "campaign") {
     split_data <- split(data, data$campaign_group)
@@ -322,9 +254,9 @@ write_csv_split_by <- function(data,
     split_data,
     ~ {
       safe_name <- .y |>
-      stringr::str_to_lower() |>
-      stringr::str_replace_all("[^a-z0-9+]+", "_") |>
-      stringr::str_replace_all("^_|_$", "")
+        stringr::str_to_lower() |>
+        stringr::str_replace_all("[^a-z0-9]+", "_") |>
+        stringr::str_replace_all("^_|_$", "")
 
       readr::write_csv(
         .x,
