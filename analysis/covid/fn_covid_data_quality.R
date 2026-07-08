@@ -217,6 +217,58 @@ make_interval_table <- function(data, group_vars) {
     )
 }
 
+# ---- helper E: Split files ----
+write_csv_split_by <- function(data,
+                               split_var,
+                               output_dir,
+                               file_prefix) {
+
+  if (split_var == "campaign") {
+    data <-
+      data |>
+      dplyr::mutate(
+        campaign_group = dplyr::case_when(
+          campaign == "Autumn 2021" ~ "campaign_group_2021",
+          campaign %in% c("Spring 2022", "Autumn 2022") ~ "campaign_group_2022",
+          campaign %in% c("Spring 2023", "Autumn 2023") ~ "campaign_group_2023",
+          campaign %in% c("Spring 2024", "Autumn 2024") ~ "campaign_group_2024",
+          campaign %in% c("Spring 2025", "Autumn 2025") ~ "campaign_group_2025",
+          TRUE ~ "campaign_group_pre_primary"
+        )
+      )
+
+    message("Campaign groups:")
+    data |>
+      dplyr::count(campaign_group, campaign, name = "n_rows") |>
+      print(n = Inf)
+  }
+
+  if (split_var == "campaign") {
+    split_data <- split(data, data$campaign_group)
+    } else {
+      split_data <- split(data, data[[split_var]])
+  }
+
+
+  purrr::iwalk(
+    split_data,
+    ~ {
+      safe_name <- .y |>
+        stringr::str_to_lower() |>
+        stringr::str_replace_all("[^a-z0-9]+", "_") |>
+        stringr::str_replace_all("^_|_$", "")
+
+      readr::write_csv(
+        .x,
+        fs::path(
+          output_dir,
+          paste0(file_prefix, "_", safe_name, ".csv")
+        )
+      )
+    }
+  )
+}
+
 # 3. Dummy data functions (for testing only) ----
 
 recalculate_age_from_shift <- function(data) {

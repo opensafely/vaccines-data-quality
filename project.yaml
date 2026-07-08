@@ -44,4 +44,4 @@ actions:
     needs: [extract_covid]
     outputs:
       moderately_sensitive:
-        csv: output/covid/covid_data_quality/*.csv
+        csv: output/covid/covid_data_quality/*/*.csv
