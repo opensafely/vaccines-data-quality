@@ -106,18 +106,18 @@ table_flu_sources_ageband4 <- flu_sources |>
   filter(campaign != "Pre-2018") |>
   group_by(campaign, ageband4, source_combination) |>
   summarise(
-    n_source_midpoint10 = n(),
+    n_source = n(),
     .groups = "drop"
   )
 
 table_flu_sources_all <- flu_sources |>
   group_by(campaign, source_combination) |>
   summarise(
-    n_source_midpoint10 = n(),
+    n_source = n(),
     .groups = "drop"
   ) |>
   mutate(ageband4 = "All population") |>
-  select(campaign, ageband4, source_combination, n_source_midpoint10)
+  select(campaign, ageband4, source_combination, n_source)
 
 table_flu_sources <- bind_rows(
   table_flu_sources_ageband4,
@@ -125,13 +125,14 @@ table_flu_sources <- bind_rows(
   ) |>
   group_by(campaign, ageband4) |>
   mutate(
-    tot_camp_midpoint10 = roundmid_any(sum(n_source_midpoint10), sdc_threshold),
-    n_source_midpoint10 = roundmid_any(n_source_midpoint10, sdc_threshold),
-    perc_source = round(n_source_midpoint10 / tot_camp_midpoint10 * 100, 1),
-    n_perc_source = glue("{n_source_midpoint10} ({perc_source}%)")
+    tot_camp_midpoint10 = roundmid_any(sum(n_source), sdc_threshold),
+    n_source_midpoint10 = roundmid_any(n_source, sdc_threshold),
+    pct_source_derived = round(n_source_midpoint10 / tot_camp_midpoint10 * 100, 1),
+    n_pct_source_derived = glue("{n_source_midpoint10} ({pct_source_derived}%)")
   ) |>
   ungroup() |>
-  arrange(campaign, source_combination)
+  arrange(campaign, source_combination) |>
+  select(!n_source)
 
 write_csv(
   table_flu_sources,
@@ -202,8 +203,8 @@ table_date_agreement <-
     )
   ) |>
   mutate(
-    pct = 100 * n_midpoint10 / denom_midpoint10,
-    n_pct = glue("{n_midpoint10} / {denom_midpoint10} ({round(pct, 1)}%)")
+    pct_derived = 100 * n_midpoint10 / denom_midpoint10,
+    n_pct_derived = glue("{n_midpoint10} / {denom_midpoint10} ({round(pct_derived, 1)}%)")
   ) |>
   arrange(campaign, comparison)
 
@@ -231,13 +232,47 @@ table_vax_by_epiweek_source <- flu_long |>
 write_csv(table_vax_by_epiweek_source,here(output_dir, "table_vax_by_epiweek_source.csv"))
 
 # Output 5: Table SNOMED. Vax by SNOMED codes
+flu_sources <- flu_sources |>
+  filter(snomed) |>
+  select(patient_id, campaign, source_combination)
 
 snomed_counts_by_campaign <- data_flu_snomed_raw |>
   filter(!is.na(vax_date)) |>
   add_campaign_vars() |>
-  count(campaign, vax_snomed, sort = TRUE, name = "n_snomed_midpoint10") |>
+  left_join(
+    flu_sources,
+    by = c("patient_id", "campaign")
+  ) |>
+  count(
+    campaign,
+    vax_snomed,
+    source_combination,
+    sort = TRUE,
+    name = "n_snomed"
+  ) |>
+  group_by(campaign, source_combination) |>
   mutate(
-    n_snomed_midpoint10 = roundmid_any(n_snomed_midpoint10, sdc_threshold)
-  )
+    n_source_combination = sum(n_snomed),
+    n_snomed_midpoint10 = roundmid_any(
+      n_snomed,
+      sdc_threshold
+    ),
+    n_source_combination_midpoint10 = roundmid_any(
+      n_source_combination,
+      sdc_threshold
+    ),
+    pct_derived = round(
+      100 * n_snomed_midpoint10 /
+        n_source_combination_midpoint10,
+      1
+    )
+  ) |>
+  ungroup() |>
+  arrange(
+    campaign,
+    source_combination,
+    desc(pct_derived)
+  ) |>
+  select(-n_snomed, -n_source_combination)
 
 write_csv(snomed_counts_by_campaign,here(output_dir, "snomed_counts_by_campaign.csv"))
