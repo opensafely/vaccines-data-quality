@@ -52,14 +52,30 @@ if (localrun) {
       make_vax_baseline_clean(seed = 123) |>
       inject_vax_errors(seed = 123)
 }
-# 2. Prepare dataset 
 
+
+# 2. Prepare dataset ----
+
+# ---- Missing vaccination date flag ----
+
+data_vax_ELD0 <-
+  data_vax_ELD0 |>
+  mutate(
+    event_id = row_number(),
+    flag_missing_vax_date = is.na(vax_date)
+  )
+
+# Initial denominators before excluding missing vaccination dates
+denom_records_initial <- nrow(data_vax_ELD0)
+denom_patients_initial <- n_distinct(data_vax_ELD0$patient_id)
+
+
+# Continue with records that have vaccination dates
 data_vax_ELD <-
   data_vax_ELD0 |>
   lazy_dt() |>
   arrange(patient_id, vax_date) |>
-  # Remove rows where vaccination date is missing
-  filter(!is.na(vax_date)) |>   
+  filter(!flag_missing_vax_date) |>
   as_tibble() |>
   mutate(
     # Harmonise product variable
