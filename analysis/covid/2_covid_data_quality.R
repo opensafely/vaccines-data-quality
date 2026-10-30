@@ -440,42 +440,11 @@ flag_long_consistency_all <-
 # 2 version: unrounded + rounded
 # we can look on L4 to see if rounding has introduced any issues
 
-# ---- Table 0: Number of non-interval flags per vaccination record ----
 
-noninterval_flag_vars <- c(
-  "flag_implausible_early_date",
-  "flag_pre_rollout_date",
-  "flag_non_routine_product",
-  "flag_same_day_same_product",
-  "flag_same_day_mixed_product"
-)
+# ---- Table 1: Overall consistency issues ----
 
-table_record_flag_count_unrounded <-
-  make_record_flag_count_table(
-    data = data_vax_ELD,
-    flag_vars = noninterval_flag_vars
-  )
-
-table_record_flag_count_rounded <-
-  table_record_flag_count_unrounded |>
-  dplyr::mutate(
-    n_records = roundmid_any(n_records, sdc_threshold),
-    denom_records_total = roundmid_any(denom_records_total, sdc_threshold)
-  )
-
-write_csv(
-  table_record_flag_count_unrounded,
-  fs::path(output_dir_noninterval, "count_record_flag_count_unrounded.csv")
-)
-
-write_csv(
-  table_record_flag_count_rounded,
-  fs::path(output_dir_noninterval, "count_record_flag_count.csv")
-)
-
-
-# ---- Table 1: Overall summary of non-interval flags ----
-table_overall_noninterval_flags_unrounded <-
+table_overall_consistency_flags_unrounded <-
+  flag_long_consistency_all |>
   make_summary_table_total(
     data = flag_long_noninterval,
     denom_data = data_vax_ELD,
