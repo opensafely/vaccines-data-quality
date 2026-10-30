@@ -446,29 +446,36 @@ flag_long_consistency_all <-
 table_overall_consistency_flags_unrounded <-
   flag_long_consistency_all |>
   make_summary_table_total(
-    data = flag_long_noninterval,
-    denom_data = data_vax_ELD,
-    group_vars = c("flag_type")
+    group_vars = "flag_type",
+    denom_records_initial = denom_records_initial,
+    denom_patients_initial = denom_patients_initial
   ) |>
-  dplyr::arrange(flag_type)
+  arrange(flag_type)
 
-table_overall_noninterval_flags_rounded <-
-  table_overall_noninterval_flags_unrounded |>
-  dplyr::mutate(
-    n_records = roundmid_any(n_records, sdc_threshold),
-    n_patients = roundmid_any(n_patients, sdc_threshold),
-    denom_records_total = roundmid_any(denom_records_total, sdc_threshold),
-    denom_patients_total = roundmid_any(denom_patients_total, sdc_threshold)
+table_overall_consistency_flags_rounded <-
+  table_overall_consistency_flags_unrounded |>
+  mutate(
+    across(
+      c(n_records, n_patients,
+        denom_records_total, denom_patients_total),
+      ~ roundmid_any(.x, sdc_threshold)
+    )
   )
 
 write_csv(
-  table_overall_noninterval_flags_unrounded,
-  fs::path(output_dir_noninterval, "count_overall_noninterval_flags_unrounded.csv")
+  table_overall_consistency_flags_unrounded,
+  fs::path(
+    output_dir_consistency,
+    "count_overall_consistency_flags_unrounded.csv"
+  )
 )
 
 write_csv(
-  table_overall_noninterval_flags_rounded,
-  fs::path(output_dir_noninterval, "count_overall_noninterval_flags.csv")
+  table_overall_consistency_flags_rounded,
+  fs::path(
+    output_dir_consistency,
+    "count_overall_consistency_flags.csv"
+  )
 )
 
 
