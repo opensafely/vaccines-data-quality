@@ -194,11 +194,23 @@ data_vax_ELD <-
 # - "Pre-roll-out" and "Primary series" grouped as "primary"
 # - All "Spring XXXX" and "Autumn XXXX" campaigns grouped as "booster"
 #
-# This allows interval analysis to focus on:
-# - within primary series intervals
-# - transitions from primary to booster
-# - intervals within and between booster campaigns
-data_vax_interval <-
+# Interval analysis:
+# - Interval bins and contexts
+# - Campaign and product transitions
+#
+# Patient-level indicators:
+# - PR: Number of distinct vaccination dates in the primary series
+# - PS: Number of within-primary intervals <14 days
+# - BM: Number of booster campaigns with >1 distinct vaccination date
+# - CS: Number of cross-campaign intervals <90 days
+# - CSI: At least two consecutive short intervals
+#        using context-specific thresholds (14 or 90 days)
+
+short_interval_threshold <- 14   #for primary campaign
+
+# ---- 3.4.1 Date-level vaccination history ----
+
+data_vax_date_level <-
   data_vax_ELD |>
   filter(campaign != "Pre-2020-04-23") |>
   
@@ -275,13 +287,60 @@ data_vax_interval <-
     interval_bin,
     interval_context,
     campaign_transition_type,
-    product_transition_type
+    product_transition_type,
+    flag_PS_interval,
+    flag_CS_interval,
+    flag_short_interval,
+    flag_CSI_interval
   )
 
-# 4. Convert to long-format flag table (non-interval)
 
-# ---- Non-interval flags ----
-flag_long_noninterval <-
+# ---- 3.4.3 Patient-level indicators ----
+# PR: Number of primary vaccination dates
+# PS: Number of within-primary intervals <14 days
+# BM: Number of booster campaigns with >1 vaccination date
+# CS: Number of cross-campaign intervals <90 days
+# CSI: Presence of two consecutive short intervals,
+#      using context-specific thresholds (14 or 90 days)
+patient_BM <-
+  data_vax_date_level |>
+  filter(campaign != "Primary series") |>
+  count(patient_id, campaign, name = "n_dates") |>
+  filter(n_dates > 1) |>
+  count(patient_id, name = "BM")
+
+patient_intervals <-
+  data_vax_interval |>
+  group_by(patient_id) |>
+  summarise(
+    PS = sum(flag_PS_interval),
+    CS = sum(flag_CS_interval),
+    CSI = any(flag_CSI_interval),
+    .groups = "drop"
+  )
+
+data_vax_patient <-
+  data_vax_date_level |>
+  group_by(patient_id) |>
+  summarise(
+    PR = sum(campaign == "Primary series"),
+    .groups = "drop"
+  ) |>
+  left_join(patient_BM, by = "patient_id") |>
+  left_join(patient_intervals, by = "patient_id") |>
+  mutate(
+    across(c(PR, PS, BM, CS), ~ replace_na(.x, 0L)),
+    CSI = replace_na(CSI, FALSE),
+    history_pattern = paste0(
+      PR, "PR_", PS, "PS_", BM, "BM_",
+      CS, "CS_", as.integer(CSI), "CSI"
+    )
+  )
+
+
+# 4. Convert consistency flags to long format ----
+
+flag_long_consistency <-
   data_vax_ELD |>
   select(
     patient_id, vax_date, campaign, vax_product,
