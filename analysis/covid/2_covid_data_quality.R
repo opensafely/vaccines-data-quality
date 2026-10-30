@@ -478,187 +478,72 @@ write_csv(
   )
 )
 
+# ---- Table 2: Non-routine products by campaign and product ----
 
-# ---- Table 2: Campaign x product summary of non-interval flags with vaccination-date-specific active denominators ----
-# Exclude the two pre-rollout categories for campaign/product summaries.
-# These early categories are retained in the overall summary only.
-data_registration_ELD <- read_feather(here("output", "covid", "extract_covid","registrations.arrow"))
-
-analysis_campaigns <- setdiff(
+analysis_campaigns <-
+  setdiff(
   as.character(campaign_info$campaign_label),
   c("Pre-2020-04-23", "Pre-roll-out")
 )
 
-flag_long_noninterval_primary_onwards <-
-  flag_long_noninterval |>
-  dplyr::filter(campaign %in% analysis_campaigns)
+flag_data_campaign <-
+  flag_long_consistency_all |>
+  filter(campaign %in% analysis_campaigns)
 
-data_vax_ELD_primary_onwards <-
-  data_vax_ELD |>
-  dplyr::filter(campaign %in% analysis_campaigns)
-
-table_campaign_product_noninterval_flags_unrounded <-
-  make_summary_table_vaccination_date_specific_active(
-    flag_data = flag_long_noninterval_primary_onwards,
-    event_data = data_vax_ELD_primary_onwards,
-    registration_data = data_registration_ELD,
-    group_vars = c("campaign", "vax_product", "flag_type")
-  ) |>
-  dplyr::arrange(campaign, vax_product, flag_type)
-
-table_campaign_product_noninterval_flags_rounded <-
-  table_campaign_product_noninterval_flags_unrounded |>
-  dplyr::mutate(
-    n_records = roundmid_any(n_records, sdc_threshold),
-    n_patients = roundmid_any(n_patients, sdc_threshold),
-    denom_patients_group = roundmid_any(denom_patients_group, sdc_threshold),
-    denom_records_group = roundmid_any(denom_records_group, sdc_threshold)
+table_nonroutine_campaign_product_unrounded <-
+  make_summary_table_consistency_product(
+    data = flag_data_campaign,
+    flag_name = "flag_non_routine_product"
   )
 
-write_csv(
-  table_campaign_product_noninterval_flags_unrounded,
-  fs::path(output_dir_noninterval, "count_campaign_product_noninterval_flags_unrounded.csv")
-)
-
-write_csv(
-  table_campaign_product_noninterval_flags_rounded,
-  fs::path(output_dir_noninterval, "count_campaign_product_noninterval_flags.csv")
-)
-
-# ---- Table 3: interval context x interval bin ----
-table_interval_context_unrounded <-
-  make_interval_table(
-    data = data_vax_interval,
-    group_vars = "interval_context"
-  ) |>
-  dplyr::arrange(interval_context, interval_bin)
-
-table_interval_context_rounded <-
-  table_interval_context_unrounded |>
-  dplyr::mutate(
-    n_records = roundmid_any(n_records, sdc_threshold),
-    n_patients = roundmid_any(n_patients, sdc_threshold),
-    denom_records_group = roundmid_any(denom_records_group, sdc_threshold),
-    denom_patients_group = roundmid_any(denom_patients_group, sdc_threshold),
-    denom_records_total = roundmid_any(denom_records_total, sdc_threshold),
-    denom_patients_total = roundmid_any(denom_patients_total, sdc_threshold)
-  )
-
-write_csv(
-  table_interval_context_unrounded,
-  fs::path(output_dir_interval, "count_interval_context_unrounded.csv")
-)
-
-write_csv(
-  table_interval_context_rounded,
-  fs::path(output_dir_interval, "count_interval_context.csv")
-)
-
-# ---- Table 4: campaign transition x product transition x interval bin ----
-
-table_interval_campaign_product_transition_unrounded <-
-  make_interval_table(
-    data = data_vax_interval,
-    group_vars = c(
-      "prev_campaign",
-      "campaign",
-      "prev_product",
-      "vax_product"
+table_nonroutine_campaign_product_rounded <-
+  table_nonroutine_campaign_product_unrounded |>
+  mutate(
+    across(
+      c(n_records, n_patients, denom_records_flag, denom_patients_flag),
+      ~ roundmid_any(.x, sdc_threshold)
     )
-  ) |>
-  arrange(
-    prev_campaign,
-    campaign,
-    prev_product,
-    vax_product,
-    interval_bin
-  )
-
-table_interval_campaign_product_transition_rounded <-
-  table_interval_campaign_product_transition_unrounded |>
-  dplyr::mutate(
-    n_records = roundmid_any(n_records, sdc_threshold),
-    n_patients = roundmid_any(n_patients, sdc_threshold),
-    denom_records_group = roundmid_any(denom_records_group, sdc_threshold),
-    denom_patients_group = roundmid_any(denom_patients_group, sdc_threshold),
-    denom_records_total = roundmid_any(denom_records_total, sdc_threshold),
-    denom_patients_total = roundmid_any(denom_patients_total, sdc_threshold)
-  )
-write_csv_split_by(
-  table_interval_campaign_product_transition_unrounded,
-  "campaign",
-  output_dir_interval_campaign,
-  "count_interval_campaign_product_transition_unrounded"
-)
-
-write_csv_split_by(
-  table_interval_campaign_product_transition_rounded,
-  "campaign",
-  output_dir_interval_campaign,
-  "count_interval_campaign_product_transition"
-)
-
-# ---- Table 5: campaign transition type x interval bin ----
-table_interval_campaign_transition_unrounded <-
-  make_interval_table(
-    data = data_vax_interval,
-    group_vars = "campaign_transition_type"
-  ) |>
-  arrange(campaign_transition_type, interval_bin)
-
-table_interval_campaign_transition_rounded <-
-  table_interval_campaign_transition_unrounded |>
-  dplyr::mutate(
-    n_records = roundmid_any(n_records, sdc_threshold),
-    n_patients = roundmid_any(n_patients, sdc_threshold),
-    denom_records_group = roundmid_any(denom_records_group, sdc_threshold),
-    denom_patients_group = roundmid_any(denom_patients_group, sdc_threshold),
-    denom_records_total = roundmid_any(denom_records_total, sdc_threshold),
-    denom_patients_total = roundmid_any(denom_patients_total, sdc_threshold)
   )
 
 write_csv(
-  table_interval_campaign_transition_unrounded,
-  fs::path(output_dir_interval, "count_interval_campaign_transition_unrounded.csv")
+  table_nonroutine_campaign_product_unrounded,
+  fs::path(output_dir_consistency, "count_nonroutine_campaign_product_unrounded.csv")
 )
 
 write_csv(
-  table_interval_campaign_transition_rounded,
-  fs::path(output_dir_interval, "count_interval_campaign_transition.csv")
+  table_nonroutine_campaign_product_rounded,
+  fs::path(output_dir_consistency, "count_nonroutine_campaign_product.csv")
 )
 
 
-# ---- Table 6: product transition type x interval bin ----
-table_interval_product_transition_unrounded <-
-  make_interval_table(
-    data = data_vax_interval,
-    group_vars = "product_transition_type"
-  ) |>
-  arrange(product_transition_type, interval_bin)
+# ---- Table 3: Same-day same-product records by campaign and product ----
 
-table_interval_product_transition_rounded <-
-  table_interval_product_transition_unrounded |>
-  dplyr::mutate(
-    n_records = roundmid_any(n_records, sdc_threshold),
-    n_patients = roundmid_any(n_patients, sdc_threshold),
-    denom_records_group = roundmid_any(denom_records_group, sdc_threshold),
-    denom_patients_group = roundmid_any(denom_patients_group, sdc_threshold),
-    denom_records_total = roundmid_any(denom_records_total, sdc_threshold),
-    denom_patients_total = roundmid_any(denom_patients_total, sdc_threshold)
+table_same_day_same_product_unrounded <-
+  make_summary_table_consistency_product(
+    data = flag_data_campaign,
+    flag_name = "flag_same_day_same_product"
+  )
+
+table_same_day_same_product_rounded <-
+  table_same_day_same_product_unrounded |>
+  mutate(
+    across(
+      c(n_records, n_patients, denom_records_flag, denom_patients_flag),
+      ~ roundmid_any(.x, sdc_threshold)
+    )
   )
 
 write_csv(
-  table_interval_product_transition_unrounded,
-  fs::path(output_dir_interval, "count_interval_product_transition_unrounded.csv")
+  table_same_day_same_product_unrounded,
+  fs::path(output_dir_same_day, "count_same_day_same_product_unrounded.csv")
 )
 
 write_csv(
-  table_interval_product_transition_rounded,
-  fs::path(output_dir_interval, "count_interval_product_transition.csv")
+  table_same_day_same_product_rounded,
+  fs::path(output_dir_same_day, "count_same_day_same_product.csv")
 )
 
-
-## count same-day mixed-product co-occurrence ----
+# ---- Table 4: count same-day mixed-product co-occurrence ----
 
 mixed_products_cooccurrence_flat <-
   data_vax_ELD |>
