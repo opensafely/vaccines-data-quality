@@ -26,6 +26,8 @@ covid_vaccinations = (
   .sort_by(vaccinations.date)
 )
 
+## All GP registration periods
+# KEEP FOR NOW: not used in the current R analysis
 ## all GP registration periods
 registration_periods = (
     practice_registrations
@@ -54,6 +56,8 @@ dataset.add_event_table(
     death_date = ons_deaths.date
 )
 
+# Registration event table
+# KEEP FOR NOW: not used in the current R analysis
 # registration event table
 dataset.add_event_table(
     "registrations",
