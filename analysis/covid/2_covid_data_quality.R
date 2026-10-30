@@ -398,7 +398,7 @@ data_vax_patient <-
 flag_long_consistency <-
   data_vax_ELD |>
   select(
-    patient_id, vax_date, campaign, vax_product,
+    event_id, patient_id, vax_date, campaign, vax_product,
     flag_implausible_early_date,
     flag_pre_rollout_date,
     flag_non_routine_product,
@@ -412,9 +412,28 @@ flag_long_consistency <-
   ) |>
   filter(flag_value) |>
   mutate(
-    flag_type = as.character(flag_type)
+    flag_type = as.character(flag_type),
+    campaign = as.character(campaign),
+    vax_product = as.character(vax_product)
   ) |>
-  select(patient_id, vax_date, campaign, vax_product, flag_type)
+  select(event_id, patient_id, vax_date, campaign, vax_product, flag_type)
+
+# Missing vaccination dates
+flag_long_missing_date <-
+  data_vax_ELD0 |>
+  filter(flag_missing_vax_date) |>
+  transmute(
+    event_id,
+    patient_id,
+    vax_date,
+    campaign = NA_character_,
+    vax_product = as.character(vax_product),
+    flag_type = "flag_missing_vax_date"
+  )
+
+# Combine all six flags
+flag_long_consistency_all <-
+  bind_rows(flag_long_consistency, flag_long_missing_date)
 
 
 # 5. Output: descriptive summary tables
