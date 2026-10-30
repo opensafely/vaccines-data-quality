@@ -75,6 +75,9 @@ campaign_info <-
 
 # lookup to rename TPP product names to coding-friendly product names
 # taking format: manufacturer/brand _ era/variant _ (dose/target) _ (modality)
+# These unspecified records reflect the vaccines commonly used in that campaign, 
+# but the specific product or formulation wasn't recorded. 
+
 vax_product_lookup <- c(
   # Pfizer adult
   "pfizer_original" = "COVID-19 mRNA Vaccine Comirnaty 30micrograms/0.3ml dose conc for susp for inj MDV (Pfizer)",
