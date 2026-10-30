@@ -21,48 +21,24 @@ roundmid_any <- function(x, to = 1) {
 
 # 2. Summary table functions ----
 
-# ---- helper A: record-level flag count summary ----
-make_record_flag_count_table <- function(data, flag_vars) {
+# ---- helper A: overall consistency summary ----
 
-  out <-
-    data |>
-    dplyr::mutate(
-      flag_count = rowSums(
-        dplyr::across(
-          dplyr::all_of(flag_vars),
-          ~ tidyr::replace_na(as.logical(.x), FALSE)
-        )
-      )
-    ) |>
-    dplyr::count(flag_count, name = "n_records") |>
-    dplyr::mutate(
-      denom_records_total = sum(n_records)
-    ) |>
-    dplyr::arrange(flag_count)
+make_summary_table_total <- function(
+  data, group_vars,
+  denom_records_initial, denom_patients_initial
+) {
 
-  out
-}
-
-# ---- helper B: summary table with total denominator only ----
-make_summary_table_total <- function(data, group_vars, denom_data) {
-
-  denom_records_total <- nrow(denom_data)
-  denom_patients_total <- dplyr::n_distinct(denom_data$patient_id)
-
-  out <-
     data |>
     dplyr::group_by(dplyr::across(dplyr::all_of(group_vars))) |>
     dplyr::summarise(
-      n_records = dplyr::n(),
+      n_records = dplyr::n_distinct(event_id),
       n_patients = dplyr::n_distinct(patient_id),
       .groups = "drop"
     ) |>
     dplyr::mutate(
-      denom_records_total = denom_records_total,
-      denom_patients_total = denom_patients_total
-    )
-
-  out |>
+      denom_records_total = .env$denom_records_initial,
+      denom_patients_total = .env$denom_patients_initial
+    ) |>
     dplyr::select(dplyr::all_of(group_vars), dplyr::everything())
 }
 
