@@ -188,11 +188,12 @@ data_vax_ELD <-
   as_tibble()
 
 
-# ---- 3.4 Implausible Intervals Between Consecutive Doses ----
-# Campaign stage classification:
-# - "Pre-2020-04-23" excluded from interval analysis (not meaningful)
-# - "Pre-roll-out" and "Primary series" grouped as "primary"
-# - All "Spring XXXX" and "Autumn XXXX" campaigns grouped as "booster"
+# ---- 3.4 Implausible Intervals Between Consecutive Dates ----
+# - Exclude "Pre-2020-04-23" and "Pre-roll-out"
+# - Combine same-day records into one date-level event
+# - Retain mixed-product dates with product marked as unknown
+# - "Primary series" classified as "primary"
+# - All Spring and Autumn campaigns classified as "booster"
 #
 # Interval analysis:
 # - Interval bins and contexts
@@ -212,23 +213,33 @@ short_interval_threshold <- 14   #for primary campaign
 
 data_vax_date_level <-
   data_vax_ELD |>
-  filter(campaign != "Pre-2020-04-23") |>
-  
-  # deduplicate same-day same-product records
+  filter(!campaign %in% c("Pre-2020-04-23", "Pre-roll-out")) |>
   arrange(patient_id, vax_date, vax_product) |>
-  group_by(patient_id, vax_date, vax_product) |>
-  slice(1) |>
-  ungroup() |>
+  mutate(
+    campaign = as.character(campaign),
+    vax_product = as.character(vax_product)
+  ) |>
+  group_by(patient_id, vax_date) |>
+  summarise(
+    campaign = first(campaign),
+    vax_product = if (first(flag_same_day_mixed_product))
+      "MIXED_PRODUCT_UNKNOWN" else first(vax_product),
+    product_pattern = first(product_pattern),
+    .groups = "drop"
+  )
 
-  # exclude mixed-product records flagged for now
-  filter(!flag_same_day_mixed_product) |>  # may be revised once standard cleaning rules are agreed 
 
+# ---- 3.4.2 Interval-level analysis ----
+
+data_vax_interval <-
+  data_vax_date_level |>
   arrange(patient_id, vax_date) |>
   group_by(patient_id) |>
   mutate(
-    prev_date     = lag(vax_date),
-    prev_product  = lag(vax_product),
+    prev_date = lag(vax_date),
+    prev_product = lag(vax_product),
     prev_campaign = lag(campaign),
+    prev_product_pattern = lag(product_pattern),
     interval_days = as.numeric(vax_date - prev_date)
   ) |>
   ungroup() |>
@@ -250,23 +261,34 @@ data_vax_date_level <-
       levels = c("1-6", "7-13","14-20", "21-29","30-89", "90-112", "113-179", "180+")
     ),
 
+
     campaign_stage = case_when(
-      campaign %in% c("Pre-roll-out", "Primary series") ~ "primary",
+      campaign == "Primary series" ~ "primary",
       grepl("Spring|Autumn", campaign) ~ "booster",
       TRUE ~ NA_character_
     ),
 
     prev_campaign_stage = case_when(
-      prev_campaign %in% c("Pre-roll-out", "Primary series") ~ "primary",
+      prev_campaign == "Primary series" ~ "primary",
       grepl("Spring|Autumn", prev_campaign) ~ "booster",
       TRUE ~ NA_character_
     ),
 
      interval_context = case_when(
-      prev_campaign_stage == "primary" & campaign_stage == "primary" ~ "within_primary",
-      prev_campaign_stage == "primary" & campaign_stage == "booster" ~ "primary_to_booster",
-      prev_campaign_stage == "booster" & campaign_stage == "booster" & prev_campaign == campaign ~ "within_booster_campaign",
-      prev_campaign_stage == "booster" & campaign_stage == "booster" & prev_campaign != campaign ~ "between_booster_campaigns",
+      prev_campaign_stage == "primary" &
+        campaign_stage == "primary" ~ "within_primary",
+
+      prev_campaign_stage == "primary" &
+        campaign_stage == "booster" ~ "primary_to_booster",
+
+      prev_campaign_stage == "booster" &
+        campaign_stage == "booster" &
+        prev_campaign == campaign ~ "within_booster_campaign",
+
+      prev_campaign_stage == "booster" &
+        campaign_stage == "booster" &
+        prev_campaign != campaign ~ "between_booster_campaigns",
+
       TRUE ~ NA_character_
     ),
 
@@ -310,6 +332,8 @@ data_vax_date_level <-
     vax_date,
     prev_product,
     vax_product,
+    prev_product_pattern,
+    product_pattern,
     prev_campaign,
     campaign,
     prev_campaign_stage,
