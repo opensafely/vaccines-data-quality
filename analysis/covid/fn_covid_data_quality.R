@@ -28,7 +28,7 @@ make_summary_table_total <- function(
   denom_records_initial, denom_patients_initial
 ) {
 
-    data |>
+  data |>
     dplyr::group_by(dplyr::across(dplyr::all_of(group_vars))) |>
     dplyr::summarise(
       n_records = dplyr::n_distinct(event_id),
@@ -42,114 +42,36 @@ make_summary_table_total <- function(
     dplyr::select(dplyr::all_of(group_vars), dplyr::everything())
 }
 
-# ---- helper C: campaign summary with vaccination-date-specific active denominators ----
-make_summary_table_vaccination_date_specific_active <- function(
-  flag_data,
-  event_data,
-  registration_data,
-  group_vars
-) {
 
-  # vaccination event data: one row per vaccination event
-  event_status_df <-
-    event_data |>
-    dplyr::mutate(
-      vax_date = as.Date(vax_date),
-      death_date = as.Date(death_date)
-    ) |>
-    dplyr::arrange(patient_id, vax_date) |>
-    dplyr::mutate(
-      event_id = dplyr::row_number()
-    ) |>
-    dplyr::select(
-      event_id,
-      patient_id,
-      vax_date,
-      campaign,
-      death_date
-    )
+# ---- helper B: flag distribution by campaign and product ----
 
-  # registration data: one row per registration period
-  registration_df <-
-    registration_data |>
-    dplyr::select(
-      patient_id,
-      registration_start_date,
-      deregistration_date
-    ) |>
-    dplyr::distinct() |>
-    dplyr::mutate(
-      registration_start_date = as.Date(registration_start_date),
-      deregistration_date = as.Date(deregistration_date)
-    )
+make_summary_table_consistency_product <- function(data, flag_name) {
 
-  # for each vaccination event, check whether vax_date falls within ANY registration interval
-  event_active_df <-
-    event_status_df |>
-    dplyr::left_join(registration_df, by = "patient_id") |>
-    dplyr::mutate(
-      registered_on_vax_date =
-        !is.na(registration_start_date) &
-        registration_start_date <= vax_date &
-        (
-          is.na(deregistration_date) |
-            deregistration_date >= vax_date
-        ),
+  flagged_data <-
+    data |>
+    dplyr::filter(flag_type == flag_name)
 
-      active_on_vax_date =
-        registered_on_vax_date &
-        (
-          is.na(death_date) |
-            death_date >= vax_date
-        )
-    ) |>
-    dplyr::group_by(event_id, patient_id, vax_date, campaign) |>
-    dplyr::summarise(
-      active_on_vax_date = any(active_on_vax_date, na.rm = TRUE),
-      .groups = "drop"
-    )
-
-  # group denominator: patients with >=1 active vaccination record in that campaign
-  denom_patients_group_df <-
-    event_active_df |>
-    dplyr::filter(active_on_vax_date) |>
+  # Campaign-level denominators
+  denominators <-
+    flagged_data |>
     dplyr::group_by(campaign) |>
     dplyr::summarise(
-      denom_patients_group = dplyr::n_distinct(patient_id),
+      denom_records_flag = dplyr::n_distinct(event_id),
+      denom_patients_flag = dplyr::n_distinct(patient_id),
       .groups = "drop"
     )
 
-  # group denominator: active vaccination records in that campaign
-  denom_records_group_df <-
-    event_active_df |>
-    dplyr::filter(active_on_vax_date) |>
-    dplyr::group_by(campaign) |>
+  # Campaign-product numerators
+  flagged_data |>
+    dplyr::group_by(campaign, vax_product) |>
     dplyr::summarise(
-      denom_records_group = dplyr::n(),
-      .groups = "drop"
-    )
-
-  # numerator
-  numerator_df <-
-    flag_data |>
-    dplyr::group_by(
-      dplyr::across(dplyr::all_of(group_vars))
-    ) |>
-    dplyr::summarise(
-      n_records = dplyr::n(),
+      n_records = dplyr::n_distinct(event_id),
       n_patients = dplyr::n_distinct(patient_id),
       .groups = "drop"
-    )
-
-  out <-
-    numerator_df |>
-    dplyr::left_join(denom_patients_group_df, by = "campaign") |>
-    dplyr::left_join(denom_records_group_df, by = "campaign")
-
-  out |>
-    dplyr::select(dplyr::all_of(group_vars), dplyr::everything())
+    ) |>
+    dplyr::left_join(denominators, by = "campaign") |>
+    dplyr::arrange(campaign, dplyr::desc(n_records))
 }
-
 
 # ---- helper C: interval table with group and total denominators ----
 
@@ -500,9 +422,9 @@ inject_vax_errors <- function(data, seed = 123) {
 # Recalculate age after shifting vaccination dates
 data <-
   data |>
-    select(-n_records_day, -prev_n_records_day, -prev_date) |>
-    arrange(patient_id, vax_date) |>
-    recalculate_age_from_shift()
+  select(-n_records_day, -prev_n_records_day, -prev_date) |>
+  arrange(patient_id, vax_date) |>
+  recalculate_age_from_shift()
 
 # NEW: Missing vaccination dates
 idx_missing <- sample(
