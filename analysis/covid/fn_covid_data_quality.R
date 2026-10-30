@@ -151,10 +151,11 @@ make_summary_table_vaccination_date_specific_active <- function(
 }
 
 
-# ---- helper D: interval table with group and total denominators ----
+# ---- helper C: interval table with group and total denominators ----
+
 make_interval_table <- function(data, group_vars) {
 
-  denom_records_total <- nrow(data)
+  denom_intervals_total <- nrow(data)
   denom_patients_total <- dplyr::n_distinct(data$patient_id)
 
   summary_df <-
@@ -163,7 +164,7 @@ make_interval_table <- function(data, group_vars) {
       dplyr::across(dplyr::all_of(c(group_vars, "interval_bin")))
     ) |>
     dplyr::summarise(
-      n_records = dplyr::n(),
+      n_intervals = dplyr::n(),
       n_patients = dplyr::n_distinct(patient_id),
       .groups = "drop"
     )
@@ -172,7 +173,7 @@ make_interval_table <- function(data, group_vars) {
     data |>
     dplyr::group_by(dplyr::across(dplyr::all_of(group_vars))) |>
     dplyr::summarise(
-      denom_records_group = dplyr::n(),
+      denom_intervals_group = dplyr::n(),
       denom_patients_group = dplyr::n_distinct(patient_id),
       .groups = "drop"
     )
@@ -181,8 +182,8 @@ make_interval_table <- function(data, group_vars) {
     summary_df |>
     dplyr::left_join(denom_df_group, by = group_vars) |>
     dplyr::mutate(
-      denom_records_total = denom_records_total,
-      denom_patients_total = denom_patients_total
+      denom_intervals_total = .env$denom_intervals_total,
+      denom_patients_total = .env$denom_patients_total
     )
 
   out |>
@@ -193,7 +194,8 @@ make_interval_table <- function(data, group_vars) {
     )
 }
 
-# ---- helper E: Split files ----
+
+# ---- helper D: Split files ----
 write_csv_split_by <- function(data,
                                split_var,
                                output_dir,
@@ -244,6 +246,34 @@ write_csv_split_by <- function(data,
     }
   )
 }
+
+# ---- helper E: consistency flag count summary ----
+
+make_flag_count_table <- function(flag_data, level, denominator) {
+
+  id_var <- if (level == "record") "event_id" else "patient_id"
+  count_var <- if (level == "record") "n_records" else "n_patients"
+  denom_var <- if (level == "record") "denom_records_initial" else "denom_patients_initial"
+
+  flag_counts <-
+    flag_data |>
+    dplyr::distinct(dplyr::across(dplyr::all_of(c(id_var, "flag_type")))) |>
+    dplyr::count(dplyr::across(dplyr::all_of(id_var)), name = "flag_count")
+
+  out <-
+    flag_counts |>
+    dplyr::count(flag_count, name = count_var)
+
+  n_zero <- denominator - sum(out[[count_var]])
+
+  dplyr::bind_rows(
+    tibble::tibble(flag_count = 0L, !!count_var := n_zero),
+    out
+  ) |>
+    dplyr::mutate(!!denom_var := denominator) |>
+    dplyr::arrange(flag_count)
+}
+
 
 # 3. Dummy data functions (for testing only) ----
 
@@ -467,8 +497,21 @@ inject_vax_errors <- function(data, seed = 123) {
   #idx_na <- sample(remaining, min(length(remaining), max(5, floor(0.01 * n_all))))
   #data$vax_product[idx_na] <- "TEST_PRODUCT"
   
+# Recalculate age after shifting vaccination dates
+data <-
   data |>
     select(-n_records_day, -prev_n_records_day, -prev_date) |>
     arrange(patient_id, vax_date) |>
     recalculate_age_from_shift()
+
+# NEW: Missing vaccination dates
+idx_missing <- sample(
+  seq_len(nrow(data)),
+  size = min(10, nrow(data))
+)
+
+data$vax_date[idx_missing] <- as.Date(NA)
+
+return(data)
 }
+

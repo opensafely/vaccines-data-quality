@@ -588,3 +588,181 @@ write_csv_split_by(
   output_dir_same_day,
   "count_same_day_mixed_product_cooccurrence"
 )
+
+# ---- Table 5: Interval context x interval bin ----
+
+table_interval_context_unrounded <-
+  make_interval_table(
+    data = data_vax_interval,
+    group_vars = "interval_context"
+  ) |>
+  dplyr::arrange(interval_context, interval_bin)
+
+table_interval_context_rounded <-
+  table_interval_context_unrounded |>
+  dplyr::mutate(
+    dplyr::across(
+      c(
+        n_intervals,
+        n_patients,
+        denom_intervals_group,
+        denom_patients_group,
+        denom_intervals_total,
+        denom_patients_total
+      ),
+      ~ roundmid_any(.x, sdc_threshold)
+    )
+  )
+
+write_csv(
+  table_interval_context_unrounded,
+  fs::path(
+    output_dir_interval,
+    "count_interval_context_unrounded.csv"
+  )
+)
+
+write_csv(
+  table_interval_context_rounded,
+  fs::path(
+    output_dir_interval,
+    "count_interval_context.csv"
+  )
+)
+
+# ---- Table 6: Intervals <90 days by campaign and product transitions ----
+
+table_interval_transitions_unrounded <-
+  make_interval_table(
+    data = data_vax_interval |>
+      filter(interval_days < 90),
+    group_vars = c(
+      "prev_campaign",
+      "campaign",
+      "prev_product",
+      "vax_product"
+    )
+  ) |>
+  arrange(
+    prev_campaign,
+    campaign,
+    prev_product,
+    vax_product,
+    interval_bin
+  )
+
+table_interval_transitions_rounded <-
+  table_interval_transitions_unrounded |>
+  mutate(
+    across(
+      c(
+        n_intervals,
+        n_patients,
+        denom_intervals_group,
+        denom_patients_group,
+        denom_intervals_total,
+        denom_patients_total
+      ),
+      ~ roundmid_any(.x, sdc_threshold)
+    )
+  )
+
+write_csv_split_by(
+  table_interval_transitions_unrounded,
+  "campaign",
+  output_dir_interval_campaign,
+  "count_interval_transitions_under90_unrounded"
+)
+
+write_csv_split_by(
+  table_interval_transitions_rounded,
+  "campaign",
+  output_dir_interval_campaign,
+  "count_interval_transitions_under90"
+)
+
+
+# ---- Table 7: Patient-level vaccination patterns ----
+
+table_patient_patterns_unrounded <-
+  data_vax_patient |>
+  count(history_pattern, name = "n_patients") |>
+  mutate(
+    denom_patients_total = nrow(data_vax_patient)
+  ) |>
+  arrange(desc(n_patients))
+
+table_patient_patterns_rounded <-
+  table_patient_patterns_unrounded |>
+  mutate(
+    across(
+      c(n_patients, denom_patients_total),
+      ~ roundmid_any(.x, sdc_threshold)
+    )
+  )
+
+write_csv(
+  table_patient_patterns_unrounded,
+  fs::path(output_dir_interval, "count_patient_patterns_unrounded.csv")
+)
+
+write_csv(
+  table_patient_patterns_rounded,
+  fs::path(output_dir_interval, "count_patient_patterns.csv")
+)
+
+
+# ---- Table 8: Number and overlap of consistency flags ----
+
+record_flag_patterns <-
+  flag_long_consistency_all |>
+  distinct(event_id, patient_id, flag_type) |>
+  arrange(event_id, flag_type) |>
+  group_by(event_id, patient_id) |>
+  summarise(
+    flag_count = n(),
+    flag_pattern = paste(flag_type, collapse = " --AND-- "),
+    .groups = "drop"
+  )
+
+table_consistency_flags_unrounded <-
+  record_flag_patterns |>
+  group_by(flag_count, flag_pattern) |>
+  summarise(
+    n_records = n_distinct(event_id),
+    n_patients = n_distinct(patient_id),
+    .groups = "drop"
+  ) |>
+  bind_rows(
+    tibble(
+      flag_count = 0L,
+      flag_pattern = "No flags",
+      n_records = denom_records_initial - n_distinct(record_flag_patterns$event_id),
+      n_patients = denom_patients_initial - n_distinct(record_flag_patterns$patient_id)
+    )
+  ) |>
+  mutate(
+    denom_records_initial = .env$denom_records_initial,
+    denom_patients_initial = .env$denom_patients_initial
+  ) |>
+  arrange(flag_count, desc(n_records))
+
+table_consistency_flags_rounded <-
+  table_consistency_flags_unrounded |>
+  mutate(
+    across(
+      c(n_records, n_patients,
+        denom_records_initial, denom_patients_initial),
+      ~ roundmid_any(.x, sdc_threshold)
+    )
+  )
+
+write_csv(
+  table_consistency_flags_unrounded,
+  fs::path(output_dir_consistency, "count_consistency_flags_unrounded.csv")
+)
+
+write_csv(
+  table_consistency_flags_rounded,
+  fs::path(output_dir_consistency, "count_consistency_flags.csv")
+)
