@@ -2,12 +2,7 @@
 # Purpose:
 #   Import event‑level COVID‑19 vaccination data
 #   Construct data‑quality flags
-#   Output 6 descriptive summary tables
-#
-# Notes:
-#   - No records are removed in this script
-#   - All outputs are event-level and descriptive only
-#   - Interval bins (1–6 → 180+) are included as flag types
+#   Output 8 descriptive summary tables
 # _________________________________________________
 
 
@@ -26,15 +21,15 @@ library(fs)
 source(here("analysis", "covid", "fn_covid_data_quality.R"))
 source(here("analysis", "covid", "0_covid_design.R"))
 
-# create output directory
+# Create output directories
 output_dir <- here("output", "covid", "covid_data_quality")
 
-output_dir_noninterval <- fs::path(output_dir, "noninterval_flags")
+output_dir_consistency <- fs::path(output_dir, "consistency")
 output_dir_interval <- fs::path(output_dir, "interval")
 output_dir_interval_campaign <- fs::path(output_dir, "interval_campaign")
 output_dir_same_day <- fs::path(output_dir, "same_day")
 
-fs::dir_create(output_dir_noninterval)
+fs::dir_create(output_dir_consistency)
 fs::dir_create(output_dir_interval)
 fs::dir_create(output_dir_interval_campaign)
 fs::dir_create(output_dir_same_day)
@@ -50,7 +45,7 @@ if (localrun) {
   data_vax_ELD0 <- 
     data_vax_ELD0 |>
       make_vax_baseline_clean(seed = 123) |>
-      inject_vax_errors(seed = 123)
+      inject_vax_errors(seed = 123) 
 }
 
 
@@ -86,11 +81,8 @@ data_vax_ELD <-
     campaign = cut(
       vax_date,
       breaks = c(campaign_info$campaign_start_date, as.Date(Inf)),
-      labels = campaign_info$campaign_label
-      
-    # distinct(.keep_all = TRUE) |> # remove exact duplicates # or use
-    # count(patient_id, vax_date, vax_product, age) |> 
-    # or alternatively, capture how many duplicate vaccines there are. This creates a new variable `n` counting the duplicates
+      labels = campaign_info$campaign_label,
+      right = FALSE
     )
   ) |>
   lazy_dt()
@@ -274,7 +266,7 @@ data_vax_interval <-
       TRUE ~ NA_character_
     ),
 
-     interval_context = case_when(
+    interval_context = case_when(
       prev_campaign_stage == "primary" &
         campaign_stage == "primary" ~ "within_primary",
 
@@ -317,7 +309,7 @@ data_vax_interval <-
       ) ~ interval_days < 90,
       TRUE ~ FALSE
     )
-  ) |>
+   ) |>
   arrange(patient_id, vax_date) |>
   group_by(patient_id) |>
   mutate(
@@ -482,9 +474,9 @@ write_csv(
 
 analysis_campaigns <-
   setdiff(
-  as.character(campaign_info$campaign_label),
-  c("Pre-2020-04-23", "Pre-roll-out")
-)
+    as.character(campaign_info$campaign_label),
+    c("Pre-2020-04-23", "Pre-roll-out")
+  )
 
 flag_data_campaign <-
   flag_long_consistency_all |>
