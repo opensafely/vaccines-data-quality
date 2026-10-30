@@ -270,9 +270,40 @@ data_vax_date_level <-
       TRUE ~ NA_character_
     ),
 
-    campaign_transition_type = paste0(prev_campaign, " -> ", campaign),
-    product_transition_type  = paste0(prev_product, " -> ", vax_product)
+    campaign_transition_type =
+      paste0(prev_campaign, " -> ", campaign),
+
+    product_transition_type =
+      paste0(prev_product, " -> ", vax_product),
+
+
+    # Short-interval indicators
+    flag_PS_interval =
+      interval_context == "within_primary" &
+      interval_days < short_interval_threshold,
+
+    flag_CS_interval =
+      prev_campaign != campaign &
+      interval_days < 90,
+
+    flag_short_interval = case_when(
+      interval_context == "within_primary" ~ interval_days < short_interval_threshold,
+      interval_context %in% c(
+        "primary_to_booster",
+        "within_booster_campaign",
+        "between_booster_campaigns"
+      ) ~ interval_days < 90,
+      TRUE ~ FALSE
+    )
   ) |>
+  arrange(patient_id, vax_date) |>
+  group_by(patient_id) |>
+  mutate(
+    flag_CSI_interval =
+      flag_short_interval &
+      lag(flag_short_interval, default = FALSE)
+  ) |>
+  ungroup() |>
   select(
     patient_id,
     prev_date,
