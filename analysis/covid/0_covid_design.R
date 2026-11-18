@@ -141,7 +141,7 @@ vax_product_lookup <- c(
   "sputnik_ii_multi" = "COVID-19 Vacc Sputnik V Component II 0.5ml multidose vials",
   "sputnik_i_inj" = "COVID-19 Vaccine Sputnik V Component I 0.5ml inj vials",
   "sputnik_ii_inj" = "COVID-19 Vaccine Sputnik V Component II 0.5ml inj vials",
-
+  
   # Sinopharm (1)
   "sinopharm" = "COVID-19 Vac Sinopharm BIBP (inactivated adjuvanted) 6.5U/0.5ml dose susp for inj vials",
 
@@ -266,11 +266,13 @@ approval_lookup <- c(
   pfizer_LP81 = "2025-08-12",
   pfizer_KP2 = "2024-10-10",
   pfizer_KP2_pfs = "2024-10-10",
+  pfizer_XFG = "2026-08-14",
   # pfizer_unspecified = ?,
   pfizer_original_children = "2021-12-22",
   pfizer_JN1_children = "2024-07-24",
   pfizer_XBB15_children = "2023-09-05",
   pfizer_LP81_children = "2025-08-12",
+  pfizer_XFG_children = "2026-08-14",
   pfizer_original_under5 = "2022-12-06",
   pfizer_JN1_under5 = "2024-07-24",
   pfizer_XBB15_under5 = "2023-09-05",
@@ -282,10 +284,13 @@ approval_lookup <- c(
   moderna_XBB15 = "2023-09-15",
   moderna_JN1 = "2024-09-02",
   moderna_LP81 = "2026-02-10",
+  moderna_XFG = "2026-08-27",
   # moderna_unspecified = ?,
   sanofigsk_B1 = "2022-12-21",
   novavax = "2022-02-03",
   novavax_JN1 = "2024-11-15",
+  novavax_JN1_pfs = "2024-11-15",
+  hipra_LP81 = "2025-10-17",
   janssen = "2021-05-28",
   valneva = "2022-04-13"
 )
