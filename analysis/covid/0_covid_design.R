@@ -124,7 +124,7 @@ vax_product_lookup <- c(
 
   # Novavax (3)
   "novavax" = "COVID-19 Vac Nuvaxovid (recombinant, adj) 5micrograms/0.5ml dose susp for inj MDV (Novavax CZ a.s.)",
-  "novavax_JN1" = "Nuvaxovid JN.1 COVID-19 Vaccine 0.5ml dispersion inj vials"
+  "novavax_JN1" = "Nuvaxovid JN.1 COVID-19 Vaccine 0.5ml dispersion inj vials",
   "novavax_JN1_pfs" = "Nuvaxovid JN.1 COVID-19 Vaccine 0.5ml dose inj pfs",
   
   # HIPRA (1)
@@ -243,7 +243,6 @@ campaign_product_lookup <- list(
   "Autumn 2025" = c(
     "pfizer_KP2",        # BNT162b2.KP.2
     "pfizer_LP81_children",
-    "pfizer_KP2_pfs",    # BNT162b2.KP.2
     "pfizer_LP81",
     "pfizer_LP81_under5",
     "moderna_LP81",
