@@ -79,7 +79,7 @@ campaign_info <-
 # but the specific product or formulation wasn't recorded. 
 
 vax_product_lookup <- c(
-  # Pfizer adult
+  # Pfizer adult (10)
   "pfizer_original" = "COVID-19 mRNA Vaccine Comirnaty 30micrograms/0.3ml dose conc for susp for inj MDV (Pfizer)",
   "pfizer_BA1" = "Comirnaty Original/Omicron BA.1 COVID-19 Vacc md vials",
   "pfizer_BA45" = "Comirnaty Original/Omicron BA.4-5 COVID-19 Vacc md vials",
@@ -88,75 +88,82 @@ vax_product_lookup <- c(
   "pfizer_LP81" = "Comirnaty LP.8.1 COVID-19 Vacc 30microg/0.3ml dose inj pfs (Pfizer Ltd)",
   "pfizer_KP2" = "Comirnaty KP.2 COVID-19 Vacc 30microg/0.3ml dose inj md vial (Pfizer Ltd)",
   "pfizer_KP2_pfs" = "Comirnaty KP.2 COVID-19 Vacc 30microg/0.3ml dose inj pfs (Pfizer Ltd)",
+  "pfizer_XFG" = "Comirnaty XFG COVID-19 Vacc 30microg/0.3ml dose inj pfs (Pfizer Ltd)",
   "pfizer_unspecified" = "Comirnaty COVID-19 mRNA Vacc ready to use 0.3ml inj md vials",
 
-  # Pfizer children
+  # Pfizer children (9)
   "pfizer_original_children" = "COVID-19 mRNA Vaccine Comirnaty Children 5-11yrs 10mcg/0.2ml dose conc for disp for inj MDV (Pfizer)",
   "pfizer_JN1_children" = "Comirnaty JN.1 Children 5-11yrs COVID-19 Vacc 0.3ml sd vials (Pfizer Ltd)",
   "pfizer_XBB15_children" = "Comirnaty Omicron XBB.1.5 Child 5-11y COVID-19 Vacc md vials",
   "pfizer_LP81_children" = "Comirnaty LP.8.1 Children 5-11y COVID-19 Vacc 0.3ml sd vials  (Pfizer Ltd)", # note double space before "(Pfizer Ltd)"
+  "pfizer_XFG_children" = "Comirnaty XFG children 6m-11yrs COVID-19 Vacc 0.3ml sd vials (Pfizer Ltd)",
   "pfizer_original_under5" = "Comirnaty Children 6m-4yrs COVID-19 mRNA Vacc 0.2ml md vials",
   "pfizer_JN1_under5" = "Comirnaty JN.1 Children 6m-4yrs COVID-19 Vacc 0.3ml md vials (Pfizer Ltd)",
   "pfizer_XBB15_under5" = "Comirnaty Omicron XBB.1.5 Child 6m-4y COVID-19 Vacc md vials",
   "pfizer_LP81_under5" = "Comirnaty LP.8.1 Children 6m-4y COVID-19 Vacc 0.3m md vials  (Pfizer Ltd)", # note, double space before "(Pfizer Ltd)"
 
-  # Astrazeneca
+  # Astrazeneca (2)
   "az_original" = "COVID-19 Vaccine Vaxzevria 0.5ml inj multidose vials (AstraZeneca)",
   "az_beta" = "COVID-19 Vac AZD2816 (ChAdOx1 nCOV-19) 3.5x10*9 viral part/0.5ml dose sol for inj MDV (AstraZeneca)",
 
-  # Moderna
+  # Moderna (9)
   "moderna_original" = "COVID-19 mRNA Vaccine Spikevax (nucleoside modified) 0.1mg/0.5mL dose disp for inj MDV (Moderna)",
   "moderna_omicron" = "COVID-19 Vac Spikevax (Zero)/(Omicron) inj md vials",
+  "moderna_omicron2" = "COVID-19 Vaccine Moderna (mRNA-1273.529) 50micrograms/0.25ml dose sol for inj MDV",
   "moderna_BA45" = "COVID-19 Vacc Spikevax Orig/Omicron BA.4/BA.5 inj md vials",
   "moderna_XBB15" = "COVID-19 Vacc Spikevax (XBB.1.5) 0.1mg/1ml inj md vials",
   "moderna_JN1" = "Spikevax JN.1 COVID-19 Vacc 0.1mg/ml inj md vials (Moderna, Inc)",
-  "moderna_omicron2" = "COVID-19 Vaccine Moderna (mRNA-1273.529) 50micrograms/0.25ml dose sol for inj MDV",
-  "moderna_unspecified" = "COVID-19 Vaccine Moderna 0.5ml dispersion for inj vials",
   "moderna_LP81" = "Spikevax LP.8.1 COVID-19 Vacc 0.1mg/ml inj md vials",
+  "moderna_XFG" = "Spikevax XFG COVID-19 mRNA Vacc 0.1mg/1ml inj md vials (Moderna Biotech Distributor UK Ltd)",
+  "moderna_unspecified" = "COVID-19 Vaccine Moderna 0.5ml dispersion for inj vials",
 
-  # Sanofi-GSK
+  # Sanofi-GSK (3)
   "sanofigsk_B1" = "COVID-19 Vacc VidPrevtyn (B.1.351) 0.5ml inj multidose vials",
   "sanofigsk_D614" = "COVID-19 Vac Sanofi (CoV2 preS dTM monovalent D614 (recombinant)) 5mcg/0.5ml dose susp for inj MDV",
   "sanofigsk_D614B1" = "COVID-19 Vacc Sanofi (D614+B.1.351) 0.5ml inj md vials",
 
-  # Novavax
+  # Novavax (3)
   "novavax" = "COVID-19 Vac Nuvaxovid (recombinant, adj) 5micrograms/0.5ml dose susp for inj MDV (Novavax CZ a.s.)",
-  "novavax_JN1" = "Nuvaxovid JN.1 COVID-19 Vaccine 0.5ml dose inj pfs",
+  "novavax_JN1" = "Nuvaxovid JN.1 COVID-19 Vaccine 0.5ml dispersion inj vials"
+  "novavax_JN1_pfs" = "Nuvaxovid JN.1 COVID-19 Vaccine 0.5ml dose inj pfs",
+  
+  # HIPRA (1)
+  "hipra_LP81" = "Bimervax LP.8.1 COVID-19 Vaccine 0.5ml inj vials (Hipra Human Health S.L.U.)",
 
-  # Sputnik
+  # Janssen (1)
+  "janssen" = "COVID-19 Vaccine Janssen (Ad26.COV2-S (recomb)) 0.5ml dose solution for injection multidose vials",
+
+  # Valneva (1)
+  "valneva" = "COVID-19 Vaccine Valneva (inactivated adj whole virus) 40antigen units/0.5ml dose susp for inj MDV",
+
+  # Sputnik (4)
   "sputnik_i_multi" = "COVID-19 Vacc Sputnik V Component I 0.5ml multidose vials",
   "sputnik_ii_multi" = "COVID-19 Vacc Sputnik V Component II 0.5ml multidose vials",
   "sputnik_i_inj" = "COVID-19 Vaccine Sputnik V Component I 0.5ml inj vials",
   "sputnik_ii_inj" = "COVID-19 Vaccine Sputnik V Component II 0.5ml inj vials",
 
-  # Janssen
-  "janssen" = "COVID-19 Vaccine Janssen (Ad26.COV2-S (recomb)) 0.5ml dose solution for injection multidose vials",
-
-  # Sinopharm
+  # Sinopharm (1)
   "sinopharm" = "COVID-19 Vac Sinopharm BIBP (inactivated adjuvanted) 6.5U/0.5ml dose susp for inj vials",
 
-  # Valneva
-  "valneva" = "COVID-19 Vaccine Valneva (inactivated adj whole virus) 40antigen units/0.5ml dose susp for inj MDV",
-
-  # Medicago
+  # Medicago (1)
   "medicago" = "COVID-19 Vaccine Medicago (CoVLP) 3.75micrograms/0.5ml dose emulsion for injection multidose vials",
 
-  # Convidecia
+  # Convidecia (1)
   "convidecia" = "COVID-19 Vaccine Convidecia 0.5ml inj vials",
 
-  # Covaxin
+  # Covaxin (1)
   "covaxin" = "COVID-19 Vac Covaxin (NIV-2020-770 inactivated) 6micrograms/0.5ml dose susp for inj MDV",
 
-  # Coronavac
+  # Coronavac (1)
   "coronavac" = "COVID-19 Vac CoronaVac (adjuvanted) 600U/0.5ml dose susp for inj vials",
 
-  # Covishield
+  # Covishield (1)
   "covishield" = "COVID-19 Vac Covishield (ChAdOx1 S recombinant) 5x10*9 viral particles/0.5ml dose sol for inj MDV",
 
-  # Covovax
+  # Covovax (1)
   "covovax" = "COVID-19 Vac Covovax (adjuvanted) 5micrograms/0.5ml dose susp for inj MDV (Serum Institute of India)",
 
-  # Not specified
+  # Not specified (1)
   "unspecified" = "SARS-2 Coronavirus vaccine"
 )
 
