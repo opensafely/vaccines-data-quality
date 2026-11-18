@@ -172,53 +172,57 @@ campaign_product_lookup <- list(
 
   "Primary series" = c(
     "pfizer_original",   # BNT162b2
-    "moderna_original",  # mRNA-1273
-    "az_original"        # ChAdOx1-S
+    "az_original",       # ChAdOx1-S
+    "moderna_original"  # mRNA-1273
   ),
 
   "Autumn 2021" = c(
     "pfizer_original",   # BNT162b2
-    "pfizer_original_children", #approval time: 2021-12-22 
     "moderna_original",  # mRNA-1273
-    "az_original"        # ChAdOx1-S
+    "az_original"        # ChAdOx1-S , Alternative (when mRNA vaccines unsuitable)
   ),
 
   "Spring 2022" = c(
     "pfizer_original",   # BNT162b2
-    "pfizer_original_children", #approval time: 2021-12-22
-    "moderna_original"   # mRNA-1273
+    "moderna_original",  # mRNA-1273
+    "az_original",       # ChAdOx1-S , Alternative (when mRNA vaccines unsuitable)
+    "pfizer_original_children" #NHS expands COVID vaccinations : 2022-01-30 
   ),
 
   "Autumn 2022" = c(
     "pfizer_original",   # BNT162b2
-    "pfizer_original_children", #approval time: 2021-12-22
-    "pfizer_original_under5", #approval time: 2022-12-06 
     "moderna_original",  # mRNA-1273
     "pfizer_BA1",        # BNT162b2/BA.1
-    "moderna_omicron"    # mRNA-1273/BA.1
+    "moderna_omicron",   # mRNA-1273/BA.1
+    "pfizer_original_children", #approval time: 2021-12-22
+    "novavax"            # exceptional use
   ),
 
   "Spring 2023" = c(
     "pfizer_BA45",       # BNT162b2/BA.4-5
     "moderna_BA45",      # mRNA-1273/BA.4-5
-    "sanofigsk_B1"       # Vidprevtyn
+    "sanofigsk_B1",      # Vidprevtyn
+    "pfizer_original_children", #approval time: 2021-12-22
+    "pfizer_original_under5", #approval time: 2022-12-06, JCVI: 6 April 2023
+    "novavax"            # exceptional use
   ),
 
   "Autumn 2023" = c(
     "pfizer_BA45",       # BNT162b2/BA.4-5
-    "pfizer_XBB15_children", #approval time: 2023-09-05 
-    "pfizer_XBB15_under5", #approval time: 2023-09-05 
-    "moderna_BA45",      # mRNA-1273/BA.4-5
     "pfizer_XBB15",      # BNT162b2.XBB.1.5
     "moderna_XBB15",     # mRNA-1273.XBB.1.5
-    "sanofigsk_B1"       # Vidprevtyn
+    "sanofigsk_B1",      # Vidprevtyn
+    "moderna_BA45",      # mRNA-1273/BA.4-5
+    "pfizer_XBB15_children", #approval time: 2023-09-05 
+    "pfizer_XBB15_under5"    #approval time: 2023-09-05 
   ),
 
   "Spring 2024" = c(
     "pfizer_XBB15",      # BNT162b2.XBB.1.5
+    "moderna_XBB15",     # mRNA-1273.XBB.1.5
     "pfizer_XBB15_children", #approval time: 2023-09-05 
-    "pfizer_XBB15_under5", #approval time: 2023-09-05 
-    "moderna_XBB15"      # mRNA-1273.XBB.1.5
+    "pfizer_XBB15_under5" #approval time: 2023-09-05 
+    
   ),
 
   "Autumn 2024" = c(
@@ -230,19 +234,21 @@ campaign_product_lookup <- list(
 
   "Spring 2025" = c(
     "pfizer_JN1",        # BNT162b2.JN.1
+    "moderna_JN1",       # mRNA-1273.JN.1
     "pfizer_JN1_children", #approval time: 2024-07-24
-    "pfizer_JN1_under5", #approval time: 2024-07-24
-    "moderna_JN1"        # mRNA-1273.JN.1
+    "pfizer_JN1_under5" #approval time: 2024-07-24
+    
   ),
 
   "Autumn 2025" = c(
-    "moderna_LP81",
-    "pfizer_LP81",
-    "pfizer_LP81_children",
-    "pfizer_LP81_under5",
-    "novavax_JN1",
     "pfizer_KP2",        # BNT162b2.KP.2
-    "pfizer_KP2_pfs"     # BNT162b2.KP.2
+    "pfizer_LP81_children",
+    "pfizer_KP2_pfs",    # BNT162b2.KP.2
+    "pfizer_LP81",
+    "pfizer_LP81_under5",
+    "moderna_LP81",
+    "novavax_JN1_pfs"
+    
   )
 )
 
